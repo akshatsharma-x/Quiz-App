@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | QuizMUJ</title>
+    <style>
+        /* Base Setup */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Updated to Brand Orange #ff7900 */
+            background: linear-gradient(135deg, #ff7900 0%, #ff5500 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Brand Title */
+        .brand-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        /* Main Card Container */
+        .register-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 350px;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUp 0.8s ease-out forwards 0.3s;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Dynamic Input Fields */
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #eee;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            /* Updated Focus Color */
+            border-color: #ff7900;
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 121, 0, 0.3);
+        }
+
+        /* The Button */
+        button {
+            width: 100%;
+            padding: 12px;
+            /* Updated Button Gradient */
+            background: linear-gradient(to right, #ff7900, #ff9100);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            /* Updated Shadow Color */
+            box-shadow: 0 5px 15px rgba(255, 121, 0, 0.4);
+        }
+
+        /* Error Message Specific to Register */
+        .error-msg {
+            color: #d94347; /* Kept red for error visibility */
+            font-size: 0.8rem;
+            display: none;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        /* Footer Links */
+        .footer-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .footer-link a {
+            /* Updated Link Color */
+            color: #ff7900;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .footer-link a:hover {
+            color: #e66a00;
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="brand-title">QuizMUJ</div>
+
+    <div class="register-container">
+        <h2>Create Account</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" placeholder="John Doe" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="john@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Min. 6 characters" required>
+                <span id="passError" class="error-msg">Password must be at least 6 characters.</span>
+            </div>
+
+            <button type="submit">Sign Up</button>
+        </form>
+
+        <div class="footer-link">
+            Already have an account? <a href="login.html">Login here</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const errorSpan = document.getElementById('passError');
+            const btn = document.querySelector('button');
+
+            // Client-side validation
+            if (password.length < 6) {
+                errorSpan.style.display = 'block';
+                // Shake animation for error
+                const input = document.getElementById('password');
+                input.style.borderColor = '#d94347';
+                setTimeout(() => input.style.borderColor = '#eee', 2000);
+            } else {
+                errorSpan.style.display = 'none';
+                
+                // Button Feedback
+                const originalText = btn.innerText;
+                btn.innerText = "Creating Account...";
+                btn.style.opacity = "0.8";
+
+                setTimeout(() => {
+                    console.log("Registered!");
+                    alert("Registration Successful! Redirecting to Login...");
+                    window.location.href = 'login.html';
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

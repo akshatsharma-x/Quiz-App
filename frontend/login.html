@@ -173,18 +173,20 @@
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Add a little feedback animation on the button text
             const btn = document.querySelector('button');
             const originalText = btn.innerText;
             btn.innerText = "Logging in...";
             btn.style.opacity = "0.8";
 
             setTimeout(() => {
-                // Mock Login Logic
+                // ----------------------------------------------------
+                // 👇 THIS IS CRITICAL: Create the 'Key' for entry
+                localStorage.setItem('quizmuj_token', 'true');
+                // ----------------------------------------------------
+
                 alert("Login Successful! Redirecting to Dashboard...");
                 window.location.href = 'dashboard.html';
                 
-                // Reset button (just in case user comes back)
                 btn.innerText = originalText;
                 btn.style.opacity = "1";
             }, 500);

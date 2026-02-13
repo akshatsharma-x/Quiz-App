@@ -8,7 +8,6 @@
         /* Base Setup */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* Updated to Brand Orange #ff7900 */
             background: linear-gradient(135deg, #ff7900 0%, #ff5500 100%);
             display: flex;
             flex-direction: column;
@@ -19,7 +18,7 @@
             overflow: hidden;
         }
 
-        /* Brand Title with Shadow */
+        /* Brand Title */
         .brand-title {
             font-size: 3rem;
             font-weight: 800;
@@ -40,7 +39,7 @@
             width: 350px;
             transform: translateY(20px);
             opacity: 0;
-            animation: slideUp 0.8s ease-out forwards 0.3s; /* Delays animation slightly */
+            animation: slideUp 0.8s ease-out forwards 0.3s;
         }
 
         h2 {
@@ -48,22 +47,45 @@
             color: #333;
             margin-top: 0;
             font-weight: 600;
+            margin-bottom: 1.5rem; /* Added spacing for toggle */
         }
 
-        .form-group {
+        /* --- NEW: TOGGLE SWITCH STYLES --- */
+        .toggle-container {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 30px;
+            padding: 4px;
             margin-bottom: 1.5rem;
             position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #555;
-            font-size: 0.9rem;
-            font-weight: 500;
+        .toggle-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #777;
+            transition: all 0.3s ease;
+            user-select: none; /* Prevents text highlighting */
         }
 
-        /* Dynamic Input Fields */
+        /* Active State matches Brand Orange */
+        .toggle-btn.active {
+            background: #ff7900;
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 121, 0, 0.3);
+        }
+        /* --------------------------------- */
+
+        .form-group { margin-bottom: 1.5rem; position: relative; }
+
+        label { display: block; margin-bottom: 0.5rem; color: #555; font-size: 0.9rem; font-weight: 500; }
+
         input {
             width: 100%;
             padding: 12px;
@@ -75,17 +97,14 @@
         }
 
         input:focus {
-            /* Updated Focus Color */
             border-color: #ff7900;
             outline: none;
             box-shadow: 0 0 8px rgba(255, 121, 0, 0.3);
         }
 
-        /* The Button */
         button {
             width: 100%;
             padding: 12px;
-            /* Updated Button Gradient */
             background: linear-gradient(to right, #ff7900, #ff9100);
             color: white;
             border: none;
@@ -98,52 +117,17 @@
 
         button:hover {
             transform: translateY(-2px);
-            /* Updated Shadow Color */
             box-shadow: 0 5px 15px rgba(255, 121, 0, 0.4);
         }
 
-        button:active {
-            transform: translateY(0);
-        }
+        button:active { transform: translateY(0); }
 
-        /* Footer Links */
-        .footer-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.9rem;
-            color: #666;
-        }
+        .footer-link { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: #666; }
+        .footer-link a { color: #ff7900; text-decoration: none; font-weight: 600; transition: color 0.3s; }
+        .footer-link a:hover { color: #e66a00; text-decoration: underline; }
 
-        .footer-link a {
-            /* Updated Link Color */
-            color: #ff7900;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s;
-        }
-
-        .footer-link a:hover {
-            color: #e66a00;
-            text-decoration: underline;
-        }
-
-        /* Animations */
-        @keyframes slideUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -151,7 +135,13 @@
     <div class="brand-title">QuizMUJ</div>
 
     <div class="login-container">
-        <h2>Welcome Back</h2>
+        <h2 id="formTitle">Welcome Back</h2>
+
+        <div class="toggle-container">
+            <div class="toggle-btn active" id="btnUser" onclick="switchRole('user')">User</div>
+            <div class="toggle-btn" id="btnAdmin" onclick="switchRole('admin')">Admin</div>
+        </div>
+
         <form id="loginForm">
             <div class="form-group">
                 <label for="email">Email Address</label>
@@ -170,22 +160,51 @@
     </div>
 
     <script>
+        // Track the selected role (Default: User)
+        let selectedRole = 'user';
+
+        function switchRole(role) {
+            selectedRole = role;
+            
+            // Get Elements
+            const userBtn = document.getElementById('btnUser');
+            const adminBtn = document.getElementById('btnAdmin');
+            const title = document.getElementById('formTitle');
+
+            // Visual Updates
+            if (role === 'user') {
+                userBtn.classList.add('active');
+                adminBtn.classList.remove('active');
+                title.innerText = "Welcome Back";
+                document.getElementById('email').placeholder = "john@example.com";
+            } else {
+                adminBtn.classList.add('active');
+                userBtn.classList.remove('active');
+                title.innerText = "Admin Portal";
+                document.getElementById('email').placeholder = "admin@quizmuj.com";
+            }
+        }
+
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            const emailInput = document.getElementById('email').value;
             const btn = document.querySelector('button');
             const originalText = btn.innerText;
-            btn.innerText = "Logging in...";
+            
+            btn.innerText = "Authenticating...";
             btn.style.opacity = "0.8";
 
             setTimeout(() => {
-                // ----------------------------------------------------
-                // 👇 THIS IS CRITICAL: Create the 'Key' for entry
                 localStorage.setItem('quizmuj_token', 'true');
-                // ----------------------------------------------------
 
-                alert("Login Successful! Redirecting to Dashboard...");
-                window.location.href = 'dashboard.html';
+                if (selectedRole === 'admin') {
+                    alert("Admin Access Granted 🛡️ Redirecting to Console...");
+                    window.location.href = 'admin.html';
+                } else {
+                    alert("Login Successful! Redirecting to Dashboard...");
+                    window.location.href = 'dashboard.html';
+                }
                 
                 btn.innerText = originalText;
                 btn.style.opacity = "1";

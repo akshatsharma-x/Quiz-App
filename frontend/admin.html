@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal | QuizMUJ</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="navbar-brand">QuizMUJ <span class="badge">ADMIN</span></div>
+        <div class="user-section">
+            <span class="user-name">Administrator</span>
+            <button id="logoutBtn" class="logout-btn">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <div class="stats-row">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <div class="number">128</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active Quizzes</h3>
+                <div class="number">12</div>
+            </div>
+            <div class="stat-card">
+                <h3>Completed</h3>
+                <div class="number">854</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Management Console</h2>
+        <div class="admin-grid">
+            <div class="card">
+                <span class="card-icon">➕</span>
+                <span class="card-title">Create Quiz</span>
+                <span class="card-desc">Add new questions</span>
+            </div>
+            
+            <div class="card">
+                <span class="card-icon">👥</span>
+                <span class="card-title">Manage Users</span>
+                <span class="card-desc">Edit or ban accounts</span>
+            </div>
+
+            <div class="card">
+                <span class="card-icon">📈</span>
+                <span class="card-title">Analytics</span>
+                <span class="card-desc">View performance reports</span>
+            </div>
+
+            <div class="card">
+                <span class="card-icon">⚙️</span>
+                <span class="card-title">System Settings</span>
+                <span class="card-desc">Configure app defaults</span>
+            </div>
+        </div>
+
+        <h2 class="section-title">Recent Activity</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>akshat@example.com</td>
+                    <td>Registered</td>
+                    <td>2 mins ago</td>
+                    <td><span class="status success">Active</span></td>
+                </tr>
+                <tr>
+                    <td>singh@test.com</td>
+                    <td>Failed Login</td>
+                    <td>15 mins ago</td>
+                    <td><span class="status error">Review</span></td>
+                </tr>
+                <tr>
+                    <td>sharma@quiz.com</td>
+                    <td>Completed Quiz 1</td>
+                    <td>1 hour ago</td>
+                    <td><span class="status success">Saved</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

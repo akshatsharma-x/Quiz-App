@@ -9,37 +9,81 @@
 <body>
 
     <nav class="navbar">
-        <div class="navbar-brand">QuizMUJ</div>
+        <div class="navbar-brand">QuizMUJ <span class="badge">PRO</span></div>
         <div class="user-section">
-            <span class="user-name">Welcome, User</span>
+            <span id="currentDate" class="date-display"></span>
+            <div class="avatar-circle">U</div>
             <button id="logoutBtn" class="logout-btn">Logout</button>
         </div>
     </nav>
 
     <div class="container">
         
-        <div class="welcome-banner">
-            <h1>Hello, Quizzer! 👋</h1>
-            <p>Welcome to your QuizMUJ dashboard. Select an option below to get started with your daily learning.</p>
+        <div class="welcome-banner fade-in">
+            <div class="banner-text">
+                <h1 id="greeting">Hello, Quizzer! 👋</h1>
+                <p>You're on a <strong>3-day streak!</strong> Keep the momentum going.</p>
+                <button class="cta-btn pulse-animation">🔥 Start Daily Quiz</button>
+            </div>
+            <div class="progress-widget">
+                <svg viewBox="0 0 36 36" class="circular-chart orange">
+                    <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="circle" stroke-dasharray="75, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <text x="18" y="20.35" class="percentage">75%</text>
+                </svg>
+                <span class="progress-label">Weekly Goal</span>
+            </div>
         </div>
 
-        <div class="dashboard-grid">
-            <div class="card">
-                <span class="card-icon">📝</span>
-                <span class="card-title">Take a Quiz</span>
-                <span class="card-desc">Start a new challenge</span>
+        <div class="stats-grid">
+            <div class="stat-card glass">
+                <span class="stat-icon">🏆</span>
+                <div class="stat-info">
+                    <h3 class="counter" data-target="1250">0</h3>
+                    <p>Total Points</p>
+                </div>
             </div>
+            <div class="stat-card glass">
+                <span class="stat-icon">✅</span>
+                <div class="stat-info">
+                    <h3 class="counter" data-target="42">0</h3>
+                    <p>Quizzes Passed</p>
+                </div>
+            </div>
+            <div class="stat-card glass">
+                <span class="stat-icon">⚡</span>
+                <div class="stat-info">
+                    <h3 class="counter" data-target="8">0</h3>
+                    <p>Rank</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-split">
             
-            <div class="card">
-                <span class="card-icon">📊</span>
-                <span class="card-title">My Results</span>
-                <span class="card-desc">View past performance</span>
+            <div class="chart-section glass">
+                <div class="section-header">
+                    <h3>Performance Analytics</h3>
+                    <select class="chart-filter">
+                        <option>This Week</option>
+                    </select>
+                </div>
+                <canvas id="performanceChart" height="200"></canvas>
             </div>
 
-            <div class="card">
-                <span class="card-icon">⚙️</span>
-                <span class="card-title">Settings</span>
-                <span class="card-desc">Manage account</span>
+            <div class="action-grid">
+                <div class="card hover-effect">
+                    <span class="card-icon">📚</span>
+                    <span class="card-title">Subject Review</span>
+                </div>
+                <div class="card hover-effect">
+                    <span class="card-icon">⚔️</span>
+                    <span class="card-title">Battle Mode</span>
+                </div>
+                <div class="card hover-effect">
+                    <span class="card-icon">⚙️</span>
+                    <span class="card-title">Settings</span>
+                </div>
             </div>
         </div>
     </div>

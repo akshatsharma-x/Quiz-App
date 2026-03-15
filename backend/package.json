@@ -12,7 +12,6 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-<<<<<<< HEAD
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
@@ -22,11 +21,6 @@
     "mongoose": "^9.3.0",
     "nodemailer": "^8.0.2",
     "socket.io": "^4.8.3"
-=======
-    "cors": "^2.8.6",
-    "dotenv": "^17.3.1",
-    "express": "^5.2.1"
->>>>>>> b82ea075383f798060b22b566ea669b676ddde57
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

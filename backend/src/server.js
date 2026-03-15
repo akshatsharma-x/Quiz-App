@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-<<<<<<< HEAD
 const errorHandler = require('./middlewares/error');
 
 // Load env vars
@@ -11,36 +10,24 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 // Connect to database
 const connectDB = require('./config/db');
 connectDB();
-=======
-
-// Load env vars
-dotenv.config();
->>>>>>> b82ea075383f798060b22b566ea669b676ddde57
 
 const app = express();
 
 // Body parser
 app.use(express.json());
 
-<<<<<<< HEAD
 // Route files
 const authRouter = require('./routes/auth');
 const quizzesRouter = require('./routes/quizzes');
 const adminRouter = require('./routes/admin');
 
-=======
->>>>>>> b82ea075383f798060b22b566ea669b676ddde57
 // Enable CORS
 app.use(cors());
 
 // Mount routers
-<<<<<<< HEAD
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/quizzes', quizzesRouter);
 app.use('/api/v1/admin', adminRouter);
-=======
-// app.use('/api/v1/auth', authRouter);
->>>>>>> b82ea075383f798060b22b566ea669b676ddde57
 
 // Basic health check route
 app.get('/api/health', (req, res) => {
@@ -51,24 +38,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-<<<<<<< HEAD
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5001;
-=======
-const errorHandler = require('./middlewares/error');
-
-app.use(errorHandler);
-
-const PORT = process.env.PORT || 5000;
->>>>>>> b82ea075383f798060b22b566ea669b676ddde57
 
 const server = app.listen(
   PORT,
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
 );
 
-<<<<<<< HEAD
 // Setup Socket.io
 const socketio = require('socket.io');
 const io = socketio(server, {
@@ -116,8 +94,6 @@ io.on('connection', (socket) => {
   });
 });
 
-=======
->>>>>>> b82ea075383f798060b22b566ea669b676ddde57
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
   console.log(`Error: ${err.message}`);

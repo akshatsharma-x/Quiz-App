@@ -138,30 +138,42 @@
         <h2 id="formTitle">Welcome Back</h2>
 
         <div class="toggle-container">
-            <div class="toggle-btn active" id="btnUser" onclick="switchRole('user')">User</div>
+            <div class="toggle-btn active" id="btnUser" onclick="switchRole('user')">Student</div>
             <div class="toggle-btn" id="btnAdmin" onclick="switchRole('admin')">Admin</div>
         </div>
 
         <form id="loginForm">
             <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" placeholder="john@example.com" required>
+                <label for="email">University Email</label>
+                <input type="email" id="email" placeholder="user@muj.manipal.edu" pattern="^[a-zA-Z0-9.\_%+-]+@muj\.manipal\.edu$" title="Must be a valid @muj.manipal.edu email" required>
+                <span id="emailError" class="error-msg" style="color: #d94347; font-size: 0.8rem; display: none; margin-top: 5px; font-weight: 600;">Login restricted to @muj.manipal.edu</span>
             </div>
-            <div class="form-group">
+            
+            <div id="passwordGroup" class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter your password" required>
+                <input type="password" id="password" placeholder="Enter your password">
             </div>
-            <button type="submit">Login</button>
+
+            <div id="otpGroup" class="form-group" style="display: none;">
+                <label for="otp">6-Digit OTP</label>
+                <input type="text" id="otp" placeholder="123456" maxlength="6" pattern="\d{6}">
+            </div>
+
+            <button type="submit" id="mainSubmitBtn">Login</button>
         </form>
 
         <div class="footer-link">
+            <a href="#" id="toggleLoginMode">Sign in with OTP instead</a><br><br>
             Don't have an account? <a href="register.html">Sign up here</a>
         </div>
     </div>
 
     <script>
-        // Track the selected role (Default: User)
+        const API_BASE = 'http://localhost:5001/api/v1';
+
+        // State Tracking
         let selectedRole = 'user';
+        let loginMode = 'password'; // 'password' | 'requestOtp' | 'verifyOtp'
 
         function switchRole(role) {
             selectedRole = role;
@@ -176,39 +188,142 @@
                 userBtn.classList.add('active');
                 adminBtn.classList.remove('active');
                 title.innerText = "Welcome Back";
-                document.getElementById('email').placeholder = "john@example.com";
+                document.getElementById('email').placeholder = "user@muj.manipal.edu";
+                document.getElementById('email').pattern = "^[a-zA-Z0-9.\\_%+-]+@muj\\.manipal\\.edu$";
+                document.getElementById('emailError').innerText = "Login restricted to @muj.manipal.edu";
             } else {
                 adminBtn.classList.add('active');
                 userBtn.classList.remove('active');
                 title.innerText = "Admin Portal";
                 document.getElementById('email').placeholder = "admin@quizmuj.com";
+                document.getElementById('email').removeAttribute('pattern');
+                document.getElementById('emailError').style.display = 'none';
             }
         }
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Toggle Login Mode (Password <-> OTP)
+        document.getElementById('toggleLoginMode').addEventListener('click', function(e) {
+            e.preventDefault();
+            const passwordGroup = document.getElementById('passwordGroup');
+            const otpGroup = document.getElementById('otpGroup');
+            const btn = document.getElementById('mainSubmitBtn');
+            const emailInput = document.getElementById('email');
+
+            if (loginMode === 'password') {
+                // Switch to Request OTP mode
+                loginMode = 'requestOtp';
+                passwordGroup.style.display = 'none';
+                document.getElementById('password').required = false;
+                
+                this.innerText = "Use password to sign in";
+                btn.innerText = "Request OTP";
+            } else {
+                // Switch back to Password mode
+                loginMode = 'password';
+                passwordGroup.style.display = 'block';
+                document.getElementById('password').required = true;
+                
+                otpGroup.style.display = 'none';
+                document.getElementById('otp').required = false;
+                
+                emailInput.disabled = false;
+                
+                this.innerText = "Sign in with OTP instead";
+                btn.innerText = "Login";
+            }
+        });
+
+        // Form Submit Handler (Real API Hookup)
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const emailInput = document.getElementById('email').value;
-            const btn = document.querySelector('button');
+            const btn = document.getElementById('mainSubmitBtn');
             const originalText = btn.innerText;
-            
-            btn.innerText = "Authenticating...";
+            const emailField = document.getElementById('email');
+
+            // Optional Client-Side Email Boundary Check for 'user' role
+            if (selectedRole === 'user') {
+                const domainRegex = /^[a-zA-Z0-9.\_%+-]+@muj\.manipal\.edu$/;
+                if (!domainRegex.test(emailField.value)) {
+                    document.getElementById('emailError').style.display = 'block';
+                    document.getElementById('email').style.borderColor = '#d94347';
+                    return;
+                }
+            } else {
+                document.getElementById('emailError').style.display = 'none';
+                document.getElementById('email').style.borderColor = '#eee';
+            }
+
+            btn.disabled = true;
             btn.style.opacity = "0.8";
 
-            setTimeout(() => {
-                localStorage.setItem('quizmuj_token', 'true');
+            try {
+                if (loginMode === 'password') {
+                    // Standard Password Login
+                    btn.innerText = "Authenticating...";
+                    const res = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            email: emailField.value, 
+                            password: document.getElementById('password').value 
+                        })
+                    });
+                    const data = await res.json();
 
-                if (selectedRole === 'admin') {
-                    alert("Admin Access Granted 🛡️ Redirecting to Console...");
-                    window.location.href = 'admin.html';
-                } else {
-                    alert("Login Successful! Redirecting to Dashboard...");
-                    window.location.href = 'dashboard.html';
+                    if (!res.ok) throw new Error(data.error || 'Login failed');
+
+                    localStorage.setItem('quizmuj_token', data.token);
+                    alert("Login Successful! Redirecting...");
+                    window.location.href = selectedRole === 'admin' ? 'admin.html' : 'dashboard.html';
+
+                } else if (loginMode === 'requestOtp') {
+                    // Request OTP
+                    btn.innerText = "Sending Email...";
+                    const currentEmail = emailField.value; // capture before disabling
+                    const res = await fetch(`${API_BASE}/auth/request-login-otp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: currentEmail })
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
+
+                    // UI Changes to enter OTP
+                    loginMode = 'verifyOtp';
+                    document.getElementById('email').disabled = true;
+                    document.getElementById('otpGroup').style.display = 'block';
+                    document.getElementById('otp').required = true;
+                    btn.innerText = "Verify OTP & Login";
+                    alert(data.data);
+
+                } else if (loginMode === 'verifyOtp') {
+                    // Verify OTP
+                    btn.innerText = "Verifying...";
+                    // Because 'email' is disabled during verify, we must use its value from DOM explicitly
+                    const res = await fetch(`${API_BASE}/auth/verify-login-otp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            email: emailField.value, 
+                            otp: document.getElementById('otp').value 
+                        })
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok) throw new Error(data.error || 'Invalid OTP');
+
+                    localStorage.setItem('quizmuj_token', data.token);
+                    alert("OTP Verified! Redirecting...");
+                    window.location.href = selectedRole === 'admin' ? 'admin.html' : 'dashboard.html';
                 }
-                
+            } catch (err) {
+                alert(err.message);
                 btn.innerText = originalText;
+                btn.disabled = false;
                 btn.style.opacity = "1";
-            }, 500);
+            }
         });
     </script>
 </body>

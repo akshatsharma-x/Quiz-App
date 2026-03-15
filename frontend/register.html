@@ -148,25 +148,35 @@
     <div class="brand-title">QuizMUJ</div>
 
     <div class="register-container">
-        <h2>Create Account</h2>
+        <h2 id="formTitle">Create Account</h2>
         <form id="registerForm">
-            <div class="form-group">
-                <label for="name">Full Name</label>
-                <input type="text" id="name" placeholder="John Doe" required>
+            <!-- Initial Registration Fields -->
+            <div id="registrationFields">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" placeholder="John Doe" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">University Email</label>
+                    <input type="email" id="email" placeholder="user@muj.manipal.edu" pattern="^[a-zA-Z0-9.\_%+-]+@muj\.manipal\.edu$" title="Must be a valid @muj.manipal.edu email" required>
+                    <span id="emailError" class="error-msg">Registration is limited to @muj.manipal.edu</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Min. 6 characters" required>
+                    <span id="passError" class="error-msg">Password must be at least 6 characters.</span>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" placeholder="john@example.com" required>
+            <!-- OTP Verification Field (Hidden initially) -->
+            <div id="otpGroup" class="form-group" style="display: none;">
+                <label for="otp">Enter 6-Digit OTP sent to your email</label>
+                <input type="text" id="otp" placeholder="123456" maxlength="6" pattern="\d{6}">
             </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Min. 6 characters" required>
-                <span id="passError" class="error-msg">Password must be at least 6 characters.</span>
-            </div>
-
-            <button type="submit">Sign Up</button>
+            <button type="submit" id="mainSubmitBtn">Sign Up</button>
         </form>
 
         <div class="footer-link">
@@ -175,33 +185,98 @@
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const API_BASE = 'http://localhost:5001/api/v1';
+        let currentMode = 'register'; // 'register' | 'verifyOtp'
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const password = document.getElementById('password').value;
+            const nameInput = document.getElementById('name').value;
+            const emailInput = document.getElementById('email').value;
+            const passwordInput = document.getElementById('password').value;
+            const otpInput = document.getElementById('otp').value;
+            const btn = document.getElementById('mainSubmitBtn');
             const errorSpan = document.getElementById('passError');
-            const btn = document.querySelector('button');
 
-            // Client-side validation
-            if (password.length < 6) {
-                errorSpan.style.display = 'block';
-                // Shake animation for error
-                const input = document.getElementById('password');
-                input.style.borderColor = '#d94347';
-                setTimeout(() => input.style.borderColor = '#eee', 2000);
-            } else {
-                errorSpan.style.display = 'none';
-                
-                // Button Feedback
-                const originalText = btn.innerText;
-                btn.innerText = "Creating Account...";
-                btn.style.opacity = "0.8";
+            // Reset Errors
+            errorSpan.style.display = 'none';
+            document.getElementById('emailError').style.display = 'none';
+            document.getElementById('password').style.borderColor = '#eee';
+            document.getElementById('email').style.borderColor = '#eee';
 
-                setTimeout(() => {
-                    console.log("Registered!");
-                    alert("Registration Successful! Redirecting to Login...");
-                    window.location.href = 'login.html';
-                }, 500);
+            // Validate Registration mode
+            if (currentMode === 'register') {
+                const domainRegex = /^[a-zA-Z0-9.\_%+-]+@muj\.manipal\.edu$/;
+                if (!domainRegex.test(emailInput)) {
+                    document.getElementById('emailError').style.display = 'block';
+                    document.getElementById('email').style.borderColor = '#d94347';
+                    return;
+                }
+                if (passwordInput.length < 6) {
+                    errorSpan.style.display = 'block';
+                    document.getElementById('password').style.borderColor = '#d94347';
+                    return;
+                }
+            }
+
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.style.opacity = "0.8";
+
+            try {
+                if (currentMode === 'register') {
+                    btn.innerText = "Creating Account & Sending OTP...";
+                    const res = await fetch(`${API_BASE}/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            name: nameInput,
+                            email: emailInput,
+                            password: passwordInput,
+                            role: 'user' // Default to user, admin logic separate
+                        })
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+                    // UI Switch to OTP mode
+                    currentMode = 'verifyOtp';
+                    document.getElementById('registrationFields').style.display = 'none';
+                    document.getElementById('name').required = false;
+                    document.getElementById('email').required = false;
+                    document.getElementById('password').required = false;
+
+                    document.getElementById('formTitle').innerText = "Verify Email";
+                    document.getElementById('otpGroup').style.display = 'block';
+                    document.getElementById('otp').required = true;
+                    btn.innerText = "Verify OTP";
+                    
+                    alert("Account created! Please check your email for the verification OTP.");
+
+                } else if (currentMode === 'verifyOtp') {
+                    btn.innerText = "Verifying...";
+                    const res = await fetch(`${API_BASE}/auth/verify-otp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: emailInput, otp: otpInput })
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok) throw new Error(data.error || 'Invalid OTP');
+
+                    // On success, save token and redirect
+                    localStorage.setItem('quizmuj_token', data.token);
+                    alert("Email Verified! Redirecting to dashboard...");
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                if(currentMode === 'register') btn.innerText = originalText;
+                if(currentMode === 'verifyOtp' && !btn.disabled) btn.innerText = "Verify OTP"; 
+                btn.disabled = false;
+                btn.style.opacity = "1";
             }
         });
     </script>

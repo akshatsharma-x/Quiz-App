@@ -96,12 +96,9 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Validate email & password format including Domain
+    // Validate email & password format
     if (!email || !password) {
       return next(new ErrorResponse('Please provide an email and password', 400));
-    }
-    if (!email.endsWith('@muj.manipal.edu')) {
-      return next(new ErrorResponse('Access restricted to @muj.manipal.edu domains only', 401));
     }
 
     // Check for user
@@ -111,8 +108,13 @@ exports.login = async (req, res, next) => {
       return next(new ErrorResponse('Invalid credentials', 401));
     }
 
-    // Check if user is verified
-    if (!user.isVerified) {
+    // Domain check only for students (not admins)
+    if (user.role !== 'admin' && !email.endsWith('@muj.manipal.edu')) {
+      return next(new ErrorResponse('Access restricted to @muj.manipal.edu domains only', 401));
+    }
+
+    // Check if user is verified (skip for admins)
+    if (user.role !== 'admin' && !user.isVerified) {
       return next(new ErrorResponse('Please verify your email first', 401));
     }
 

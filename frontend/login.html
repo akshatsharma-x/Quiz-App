@@ -226,7 +226,7 @@
                 otpGroup.style.display = 'none';
                 document.getElementById('otp').required = false;
                 
-                emailInput.disabled = false;
+                emailInput.readOnly = false;
                 
                 this.innerText = "Sign in with OTP instead";
                 btn.innerText = "Login";
@@ -242,7 +242,8 @@
             const emailField = document.getElementById('email');
 
             // Optional Client-Side Email Boundary Check for 'user' role
-            if (selectedRole === 'user') {
+            // Skip this check during OTP verification (email was already validated)
+            if (loginMode !== 'verifyOtp' && selectedRole === 'user') {
                 const domainRegex = /^[a-zA-Z0-9.\_%+-]+@muj\.manipal\.edu$/;
                 if (!domainRegex.test(emailField.value)) {
                     document.getElementById('emailError').style.display = 'block';
@@ -292,10 +293,12 @@
 
                     // UI Changes to enter OTP
                     loginMode = 'verifyOtp';
-                    document.getElementById('email').disabled = true;
+                    document.getElementById('email').readOnly = true;
                     document.getElementById('otpGroup').style.display = 'block';
                     document.getElementById('otp').required = true;
                     btn.innerText = "Verify OTP & Login";
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
                     alert(data.data);
 
                 } else if (loginMode === 'verifyOtp') {

@@ -12,8 +12,8 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Please add an email'],
     unique: true,
     match: [
-      /^[a-zA-Z0-9._%+-]+@muj\.manipal\.edu$/,
-      'Registration is strictly limited to @muj.manipal.edu domains'
+      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+      'Please add a valid email'
     ]
   },
   role: {

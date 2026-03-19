@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Exam | QuizMUJ Proctoring Demo</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a; color: white; margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+        .exam-container {
+            background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px;
+            padding: 40px; width: 600px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .warning-box {
+            background: rgba(255, 71, 87, 0.1); border: 1px solid #ff4757;
+            color: #ff4757; padding: 15px; border-radius: 8px; font-weight: 600;
+            margin: 20px 0; display: none;
+        }
+        .btn-start {
+            background: #ff7900; color: white; border: none; padding: 12px 24px;
+            border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-start:hover { background: #e66a00; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <div class="exam-container" id="introScreen">
+        <h1>DBMS Midterm 1</h1>
+        <p style="color: #94a3b8;">Welcome to the exam. This is a proctored environment.</p>
+        <button class="btn-start" onclick="startExam()">Start Exam Now</button>
+    </div>
+
+    <div class="exam-container" id="activeScreen" style="display: none;">
+        <h1>Exam in Progress</h1>
+        <h2 style="color: #2ed573;">You are connected to the live session.</h2>
+        <p style="color: #94a3b8; font-size: 0.9rem;">
+            ⚠️ Do not minimize this window or switch tabs. The invigilator is watching via WebSockets.
+        </p>
+        <div id="cheatWarning" class="warning-box">
+            🚨 TAB SWITCH DETECTED. THE INVIGILATOR HAS BEEN NOTIFIED.
+        </div>
+        <button class="btn-start" style="background: #ef4444; margin-top: 20px;" onclick="location.reload()">End Exam Early</button>
+    </div>
+
+    <script>
+        let socket;
+
+        function startExam() {
+            // Document the UI Change
+            document.getElementById('introScreen').style.display = 'none';
+            document.getElementById('activeScreen').style.display = 'block';
+
+            // 1. Hook up the backend WebSockets
+            socket = io('http://localhost:5001');
+
+            // 2. Transmit the start signal
+            socket.emit('startLiveExam', { 
+                userId: 'user_' + Math.floor(Math.random() * 1000), 
+                name: 'Student ' + Math.floor(Math.random() * 100), // Randomize for demo
+                email: 'student@muj.manipal.edu',
+                quizId: 'DBMS_MID_01' 
+            });
+
+            // 3. The Proctoring / Visibility API Logic
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden) {
+                    // The student minimized the window or clicked a different tab!
+                    console.warn("Visibility lost! Emitting cheat alert to server...");
+                    socket.emit('tabSwitchDetected');
+                    
+                    // Show terrifying frontend warning
+                    const warningBox = document.getElementById('cheatWarning');
+                    warningBox.style.display = 'block';
+                    setTimeout(() => warningBox.style.display = 'none', 5000);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

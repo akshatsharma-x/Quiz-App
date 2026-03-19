@@ -144,8 +144,8 @@
 
         <form id="loginForm">
             <div class="form-group">
-                <label for="email">University Email</label>
-                <input type="email" id="email" placeholder="user@muj.manipal.edu" pattern="^[a-zA-Z0-9.\_%+-]+@muj\.manipal\.edu$" title="Must be a valid @muj.manipal.edu email" required>
+                <label for="email" id="emailLabel">University Email</label>
+                <input type="email" id="email" placeholder="user@muj.manipal.edu" title="Must be a valid email" required>
                 <span id="emailError" class="error-msg" style="color: #d94347; font-size: 0.8rem; display: none; margin-top: 5px; font-weight: 600;">Login restricted to @muj.manipal.edu</span>
             </div>
             
@@ -188,13 +188,15 @@
                 userBtn.classList.add('active');
                 adminBtn.classList.remove('active');
                 title.innerText = "Welcome Back";
+                document.getElementById('emailLabel').innerText = "University Email";
                 document.getElementById('email').placeholder = "user@muj.manipal.edu";
-                document.getElementById('email').pattern = "^[a-zA-Z0-9.\\_%+-]+@muj\\.manipal\\.edu$";
+                document.getElementById('email').setAttribute('pattern', '^[a-zA-Z0-9.\\_%+-]+@muj\\.manipal\\.edu$');
                 document.getElementById('emailError').innerText = "Login restricted to @muj.manipal.edu";
             } else {
                 adminBtn.classList.add('active');
                 userBtn.classList.remove('active');
                 title.innerText = "Admin Portal";
+                document.getElementById('emailLabel').innerText = "Admin Email";
                 document.getElementById('email').placeholder = "admin@quizmuj.com";
                 document.getElementById('email').removeAttribute('pattern');
                 document.getElementById('emailError').style.display = 'none';

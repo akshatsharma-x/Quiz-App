@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Portal | QuizMUJ</title>
     <link rel="stylesheet" href="admin.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        .toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+        }
+        .toast {
+            background: #ff4757; color: white; padding: 15px 25px; 
+            border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(255,71,87,0.4);
+            font-weight: 600; display: flex; align-items: center; gap: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    </style>
 </head>
 <body>
 
@@ -35,11 +48,13 @@
 
         <h2 class="section-title">Management Console</h2>
         <div class="admin-grid">
-            <div class="card">
-                <span class="card-icon">➕</span>
-                <span class="card-title">Create Quiz</span>
-                <span class="card-desc">Add new questions</span>
-            </div>
+            <a href="create-quiz.html" style="text-decoration: none; color: inherit;">
+                <div class="card">
+                    <span class="card-icon">➕</span>
+                    <span class="card-title">Create Quiz</span>
+                    <span class="card-desc">Add new questions</span>
+                </div>
+            </a>
             
             <div class="card">
                 <span class="card-icon">👥</span>
@@ -47,10 +62,10 @@
                 <span class="card-desc">Edit or ban accounts</span>
             </div>
 
-            <div class="card">
+            <div class="card" id="exportResultsCard">
                 <span class="card-icon">📈</span>
-                <span class="card-title">Analytics</span>
-                <span class="card-desc">View performance reports</span>
+                <span class="card-title">Analytics & Export</span>
+                <span class="card-desc">Download CSV reports</span>
             </div>
 
             <div class="card">
@@ -60,39 +75,27 @@
             </div>
         </div>
 
-        <h2 class="section-title">Recent Activity</h2>
+        <h2 class="section-title">🔴 Live Exam Room Monitoring</h2>
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>Time</th>
-                    <th>Status</th>
+                    <th>Student Name</th>
+                    <th>Email</th>
+                    <th>Active Quiz</th>
+                    <th>Started At</th>
+                    <th>Anti-Cheat Warnings</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="liveTakersTable">
                 <tr>
-                    <td>akshat@example.com</td>
-                    <td>Registered</td>
-                    <td>2 mins ago</td>
-                    <td><span class="status success">Active</span></td>
-                </tr>
-                <tr>
-                    <td>singh@test.com</td>
-                    <td>Failed Login</td>
-                    <td>15 mins ago</td>
-                    <td><span class="status error">Review</span></td>
-                </tr>
-                <tr>
-                    <td>sharma@quiz.com</td>
-                    <td>Completed Quiz 1</td>
-                    <td>1 hour ago</td>
-                    <td><span class="status success">Saved</span></td>
+                    <td colspan="5" style="text-align: center; color: #888;">Waiting for students to start exams...</td>
                 </tr>
             </tbody>
         </table>
 
     </div>
+    
+    <div id="toastContainer" class="toast-container"></div>
 
     <script src="admin.js"></script>
 </body>

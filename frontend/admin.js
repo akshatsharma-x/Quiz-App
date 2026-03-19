@@ -20,4 +20,93 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // 3. SECURE SOCKET.IO LIVE EXAM ROOM TRACKING
+    const socket = io('http://localhost:5001');
+
+    // Register this socket as an admin to authorize receiving broadcasts
+    socket.emit('joinAdminRoom');
+
+    // Handle updates to the active test-takers
+    socket.on('liveTakersUpdate', (takersArray) => {
+        const tableBody = document.getElementById('liveTakersTable');
+        
+        if (takersArray.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #888;">No students currently taking exams.</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = ''; // Clear old data
+        
+        takersArray.forEach(student => {
+            const timeStarted = new Date(student.startTime).toLocaleTimeString();
+            const warningColor = student.warnings > 0 ? '#ff4757' : '#2ed573';
+            const warningBadge = student.warnings > 0 ? `⚠️ ${student.warnings} Warnings` : `✅ Clear`;
+
+            const row = `<tr>
+                <td style="font-weight: 600;">${student.name}</td>
+                <td>${student.email}</td>
+                <td><span class="badge" style="background: var(--bg-card); color: var(--primary);">${student.quizId}</span></td>
+                <td>${timeStarted}</td>
+                <td style="color: ${warningColor}; font-weight: 600;">${warningBadge}</td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+    });
+
+    // Handle incoming Anti-Cheat Alerts in real-time
+    socket.on('cheatAlert', (alertData) => {
+        showToastAlert(`🚨 Anti-Cheat: ${alertData.name} was caught switching tabs! (Warning #${alertData.warnings})`);
+    });
+
+    // 4. MODULE 4: ANALYTICS & CSV EXPORT 
+    const exportCard = document.getElementById('exportResultsCard');
+    if (exportCard) {
+        exportCard.addEventListener('click', async () => {
+            const quizId = prompt("Enter the exact Quiz ID you wish to export:");
+            if (!quizId) return;
+
+            try {
+                showToastAlert(`Generating robust CSV report for Quiz: ${quizId}...`);
+                
+                const response = await fetch(`http://localhost:5001/api/v1/admin/results/${quizId}/csv`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data.error || 'Failed to generate CSV. Check the Quiz ID.');
+                }
+
+                // Force a secure file download from the memory blob
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `LMS_Report_${quizId}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                showToastAlert(`✅ Successfully downloaded CSV for Quiz ${quizId}`);
+            } catch (error) {
+                showToastAlert(`❌ Error: ${error.message}`);
+            }
+        });
+    }
+
+    function showToastAlert(message) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerText = message;
+        container.appendChild(toast);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideIn 0.3s ease-out reverse forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
 });

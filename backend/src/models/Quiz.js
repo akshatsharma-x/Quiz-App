@@ -46,11 +46,20 @@ const QuizSchema = new mongoose.Schema({
       return this.type === 'google_form';
     }
   },
-  questions: {
-    type: [QuestionSchema],
-    required: function() {
-      return this.type === 'native';
-    }
+  // ADVANCED QUIZ MANAGEMENT: Link to the centralized Question Bank
+  questions: [{
+    type: mongoose.Schema.ObjectId,
+    ref: 'QuestionBank'
+  }],
+  // LMS FEATURE: Strict Time Constraint
+  timeLimit: {
+    type: Number, // In minutes. 30 = 30-minute auto-submit
+    required: function() { return this.type === 'native'; }
+  },
+  // LMS FEATURE: Cohort Assignments
+  assignedBatches: {
+    type: [String], // Automatically assigned to "All" if empty
+    default: ['All']
   },
   pointsPerQuestion: {
     type: Number,

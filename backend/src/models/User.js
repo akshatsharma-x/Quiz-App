@@ -47,6 +47,27 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  
+  // LMS FEATURE: Cohort Management
+  batch: {
+    type: String,
+    trim: true,
+    index: true // Indexed for rapid querying (e.g., getting all students in a section)
+  },
+
+  // LMS FEATURE: Performance Optimization (Denormalization)
+  completedQuizzes: [{
+    quizId: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Quiz'
+    },
+    score: Number,
+    completedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  
   createdAt: {
     type: Date,
     default: Date.now

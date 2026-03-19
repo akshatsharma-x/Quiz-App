@@ -17,33 +17,39 @@ exports.exportResultsCsv = async (req, res, next) => {
 
     const results = await Result.find({ quiz: quizId }).populate({
       path: 'user',
-      select: 'name email'
+      select: 'name email batch'
     });
 
     if (!results || results.length === 0) {
       return next(new ErrorResponse(`No results found for quiz ${quizId}`, 404));
     }
 
-    // Transform data for CSV
+    // Transform data for CSV with advanced LMS metrics
     const csvData = results.map(result => ({
       Student_Name: result.user.name,
       Student_Email: result.user.email,
+      Cohort_Batch: result.user.batch || 'N/A',
       Score: result.score,
       Total_Possible: result.totalPossibleScore,
       Percentage: ((result.score / result.totalPossibleScore) * 100).toFixed(2) + '%',
-      Tab_Switches: result.tabSwitches,
       Time_Spent_Seconds: result.timeSpentSeconds || 'N/A',
+      Legacy_Tab_Switches: result.tabSwitches,
+      New_Audit_Events: result.auditLog ? result.auditLog.length : 0,
+      Is_Flagged_For_Cheating: result.isFlagged ? 'YES' : 'NO',
       Submitted_At: result.submittedAt.toISOString()
     }));
 
     const fields = [
       'Student_Name', 
       'Student_Email', 
+      'Cohort_Batch',
       'Score', 
       'Total_Possible', 
       'Percentage', 
-      'Tab_Switches', 
-      'Time_Spent_Seconds', 
+      'Time_Spent_Seconds',
+      'Legacy_Tab_Switches', 
+      'New_Audit_Events',
+      'Is_Flagged_For_Cheating',
       'Submitted_At'
     ];
     

@@ -56,6 +56,9 @@ const io = socketio(server, {
   }
 });
 
+// Master Tracking Map in Server Memory for the Live Exam Room
+const liveTestTakers = new Map(); // socket.id -> { userId, name, email, quizId, startTime, warnings }
+
 let activeUsers = 0;
 
 io.on('connection', (socket) => {
@@ -63,33 +66,57 @@ io.on('connection', (socket) => {
   io.emit('activeUsers', activeUsers);
   console.log(`Socket connected: ${socket.id}. Total active: ${activeUsers}`);
 
-  // When a student starts a quiz
-  socket.on('joinQuiz', (quizId) => {
-    socket.join(`quiz_${quizId}`);
-    console.log(`Socket ${socket.id} joined quiz ${quizId}`);
+  // 1. Admins entering the dashboard join a special broadcast room
+  socket.on('joinAdminRoom', () => {
+    socket.join('admin_room');
+    // Instantly hydrate the admin's table with current test-takers
+    socket.emit('liveTakersUpdate', Array.from(liveTestTakers.values()));
   });
 
-  // Example: Emit a live leaderboard update to a specific quiz room
-  socket.on('updateLeaderboard', ({ quizId, result }) => {
-    io.to(`quiz_${quizId}`).emit('newLeaderboardData', result);
-  });
-
-  // Anti-Cheat: Listen for tab switches
-  socket.on('tabSwitch', (data) => {
-    const { userId, quizId, timestamp } = data;
-    console.log(`[ANTI-CHEAT ALERT] User ${userId} switched tabs during Quiz ${quizId} at ${timestamp}`);
-    // Emit alert to admins listening on a special admin room
-    io.emit('cheatAlert', {
-      userId,
-      quizId,
-      timestamp,
-      message: 'Tab switch detected!'
+  // 2. Students starting an exam
+  socket.on('startLiveExam', (studentData) => {
+    socket.join(`quiz_${studentData.quizId}`);
+    
+    // Add student to the tracking map with a warning counter set to 0
+    liveTestTakers.set(socket.id, {
+      ...studentData,
+      startTime: new Date(),
+      warnings: 0
     });
+    
+    // Broadcast the updated array to all Admins watching the table
+    io.to('admin_room').emit('liveTakersUpdate', Array.from(liveTestTakers.values()));
+    console.log(`[LMS] Student ${studentData.name} started quiz ${studentData.quizId}`);
   });
 
+  // 3. Proctoring & Anti-Cheat: Tab Switching Detection
+  socket.on('tabSwitchDetected', () => {
+    const student = liveTestTakers.get(socket.id);
+    if(student) {
+      student.warnings += 1; // Increment cheat flag
+      console.log(`[ANTI-CHEAT] ${student.name} switched tabs! Warnings: ${student.warnings}`);
+      
+      // Ping the Admin with a red alert
+      io.to('admin_room').emit('cheatAlert', {
+        name: student.name,
+        warnings: student.warnings,
+        message: 'Student switched tabs or exited full-screen!'
+      });
+      // Refresh the main table to show the new warning count
+      io.to('admin_room').emit('liveTakersUpdate', Array.from(liveTestTakers.values()));
+    }
+  });
+
+  // 4. Cleanup on disconnect (Student submits or closes browser)
   socket.on('disconnect', () => {
     activeUsers--;
     io.emit('activeUsers', activeUsers);
+    
+    if(liveTestTakers.has(socket.id)) {
+      console.log(`[LMS] Student ${liveTestTakers.get(socket.id).name} left the exam.`);
+      liveTestTakers.delete(socket.id);
+      io.to('admin_room').emit('liveTakersUpdate', Array.from(liveTestTakers.values()));
+    }
     console.log(`Socket disconnected: ${socket.id}. Total active: ${activeUsers}`);
   });
 });

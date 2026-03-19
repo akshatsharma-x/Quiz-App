@@ -29,6 +29,32 @@ const ResultSchema = new mongoose.Schema({
   },
   timeSpentSeconds: {
     type: Number
+  },
+  
+  // PROCTORING & ANTI-CHEAT: Deep Auditing
+  auditLog: [{
+    action: {
+      type: String,
+      enum: ['tab_switch', 'window_blur', 'mouse_leave', 'network_disconnect', 'full_screen_exit'],
+      required: true
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now
+    },
+    details: String
+  }],
+  questionMetrics: [{
+    questionId: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'QuestionBank'
+    },
+    timeSpentSeconds: Number,
+    isCorrect: Boolean
+  }],
+  isFlagged: {
+    type: Boolean,
+    default: false
   }
 });
 

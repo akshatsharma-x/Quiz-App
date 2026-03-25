@@ -96,6 +96,64 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 5. MODULE 3: EXTERNAL FORM INTEGRATOR
+    const embedExternalCard = document.getElementById('embedExternalCard');
+    const externalQuizModal = document.getElementById('externalQuizModal');
+    const closeExtModal = document.querySelector('.close-modal');
+    const externalQuizForm = document.getElementById('externalQuizForm');
+
+    if (embedExternalCard && externalQuizModal && closeExtModal) {
+        embedExternalCard.addEventListener('click', () => {
+            externalQuizModal.style.display = 'flex';
+        });
+
+        closeExtModal.addEventListener('click', () => {
+            externalQuizModal.style.display = 'none';
+        });
+
+        // Close when clicking outside modal-content
+        externalQuizModal.addEventListener('click', (e) => {
+            if (e.target === externalQuizModal) {
+                externalQuizModal.style.display = 'none';
+            }
+        });
+    }
+
+    if (externalQuizForm) {
+        externalQuizForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const payload = {
+                title: document.getElementById('extQuizTitle').value,
+                googleFormUrl: document.getElementById('extQuizUrl').value,
+                targetBatch: document.getElementById('extQuizBatch').value,
+                scheduledTime: document.getElementById('extQuizTime').value
+            };
+
+            try {
+                const res = await fetch('http://localhost:5001/api/v1/admin/quizzes/external', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showToastAlert('✅ External Quiz successfully embedded!');
+                    externalQuizModal.style.display = 'none';
+                    externalQuizForm.reset();
+                } else {
+                    showToastAlert(`❌ Error: ${data.error || 'Failed to embed'}`);
+                }
+            } catch (error) {
+                showToastAlert('❌ Network error. Please try again.');
+            }
+        });
+    }
+
     function showToastAlert(message) {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');

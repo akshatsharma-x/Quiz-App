@@ -64,3 +64,26 @@ exports.exportResultsCsv = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Create embeddable external quiz (Google/MS Form)
+// @route   POST /api/v1/admin/quizzes/external
+// @access  Private/Admin
+exports.createExternalQuiz = async (req, res, next) => {
+  try {
+    const { title, googleFormUrl, targetBatch, scheduledTime } = req.body;
+
+    const quiz = await Quiz.create({
+      title,
+      type: 'google_form',
+      googleFormUrl,
+      assignedBatches: targetBatch ? [targetBatch] : ['All'],
+      startTime: scheduledTime || Date.now(),
+      endTime: scheduledTime ? new Date(new Date(scheduledTime).getTime() + 24*60*60*1000) : new Date(Date.now() + 24*60*60*1000), // Default 24h active if not specified
+      createdBy: req.user.id
+    });
+
+    res.status(201).json({ success: true, data: quiz });
+  } catch (error) {
+    next(error);
+  }
+};

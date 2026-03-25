@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External Quiz | QuizMUJ</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <style>
+        /* Specific page overrides and layout */
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent body scroll, iframe handles scrolling */
+            background: #f4f4f9;
+            background-image: radial-gradient(#ff7900 0.5px, transparent 0.5px), radial-gradient(#ff7900 0.5px, #f4f4f9 0.5px);
+            background-size: 20px 20px;
+        }
+
+        /* Glassmorphism Container for the iframe */
+        .iframe-wrapper {
+            flex: 1; /* Take remaining height */
+            margin: 20px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 30px rgba(255, 121, 0, 0.4); /* Glowing #ff7900 shadow */
+            display: flex;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .external-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 15px; /* Matches inner radius so it fits nicely inside wrapper */
+            opacity: 0; /* Hidden initially until loaded */
+            transition: opacity 0.5s ease-in;
+        }
+
+        /* Loader Styles */
+        .loader-container {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 121, 0, 0.2);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .loader-text {
+            color: var(--primary-dark);
+            font-weight: 600;
+            font-size: 1.2rem;
+            animation: pulse-text 1.5s infinite;
+        }
+
+        @keyframes pulse-text { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+        /* Error States */
+        #errorState {
+            display: none;
+            color: #ff4757;
+            font-weight: bold;
+            text-align: center;
+            padding: 40px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- QuizMUJ Navigation -->
+    <nav class="navbar">
+        <div class="navbar-brand">QuizMUJ <span class="badge" id="quizTitleBadge">External</span></div>
+        <div class="user-section">
+            <span class="user-name" id="studentName"></span>
+            <button onclick="window.location.href='dashboard.html'" class="logout-btn" style="background: rgba(255,255,255,0.9); color: var(--primary); border: none; font-weight: bold; padding: 8px 20px;">Back to Dashboard</button>
+        </div>
+    </nav>
+
+    <!-- Main Workspace -->
+    <div class="iframe-wrapper">
+        <!-- Loader -->
+        <div class="loader-container" id="loader">
+            <div class="spinner"></div>
+            <div class="loader-text">Loading secure exam environment...</div>
+        </div>
+
+        <!-- Error Message Container -->
+        <div class="loader-container" id="errorState">
+            <div style="font-size: 3rem; margin-bottom: 10px;">⚠️</div>
+            <div id="errorText">Failed to load exam. Please ensure your link is correct.</div>
+        </div>
+
+        <!-- Form Embedded Here -->
+        <iframe id="quizFrame" class="external-iframe" src="" allowfullscreen></iframe>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('quizmuj_token');
+            const userStr = localStorage.getItem('quizmuj_user');
+
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            } else {
+                document.body.style.display = 'flex';
+                if(userStr) {
+                    try {
+                        const user = JSON.parse(userStr);
+                        document.getElementById('studentName').innerText = user.name || 'Student';
+                    } catch(e) {}
+                }
+            }
+
+            // Extract quiz ID from query params
+            const urlParams = new URLSearchParams(window.location.search);
+            const quizId = urlParams.get('quizId');
+
+            const loader = document.getElementById('loader');
+            const errorState = document.getElementById('errorState');
+            const errorText = document.getElementById('errorText');
+            const iframe = document.getElementById('quizFrame');
+
+            if (!quizId) {
+                loader.style.display = 'none';
+                errorText.innerText = 'No Quiz ID provided in the URL.';
+                errorState.style.display = 'flex';
+                return;
+            }
+
+            try {
+                // Fetch Quiz details from backend API
+                const response = await fetch(`http://localhost:5001/api/v1/quizzes/${quizId}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.data) {
+                    throw new Error(data.error || 'Failed to fetch Quiz details.');
+                }
+
+                const quiz = data.data;
+
+                if (quiz.type !== 'google_form') {
+                    throw new Error('This quiz is not an external form. It should be taken natively.');
+                }
+
+                if (!quiz.googleFormUrl) {
+                    throw new Error('No external URL was linked for this exam.');
+                }
+
+                // Update UI with valid quiz details
+                document.getElementById('quizTitleBadge').innerText = quiz.title;
+
+                // Load iframe
+                iframe.src = quiz.googleFormUrl;
+
+                // When iframe finishes loading, hide the spinner
+                iframe.onload = () => {
+                    loader.style.display = 'none';
+                    iframe.style.opacity = '1';
+                };
+
+            } catch (error) {
+                loader.style.display = 'none';
+                errorText.innerText = error.message;
+                errorState.style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>

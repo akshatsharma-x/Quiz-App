@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Context Wizard | QuizMUJ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff7900;
+            --primary-dark: #e65100;
+            --bg-color: #0f172a;
+            --text-light: #e2e8f0;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-light);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(255, 121, 0, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(255, 121, 0, 0.15), transparent 25%);
+        }
+
+        .wizard-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 121, 0, 0.15);
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: white;
+            margin: 0 0 10px 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        select, input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(255, 121, 0, 0.2);
+        }
+
+        select option {
+            background: #1e293b;
+            color: white;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 121, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 121, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Subtle glowing accent line */
+        .accent-line {
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            margin: -40px -40px 30px -40px;
+            border-radius: 24px 24px 0 0;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wizard-container">
+        <div class="accent-line"></div>
+        <div class="header">
+            <h1>Quick-Start Wizard</h1>
+            <p>Set your current academic context. This will automatically pre-fill your quiz settings during this session.</p>
+        </div>
+
+        <form id="wizardForm">
+            <div class="grid-layout">
+                <!-- Academic Targeting -->
+                <div class="form-group">
+                    <label for="program">Program</label>
+                    <select id="program" required>
+                        <option value="" disabled selected>Select Program</option>
+                        <option value="B.Tech">B.Tech</option>
+                        <option value="BBA">BBA</option>
+                        <option value="BCA">BCA</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="branch">Branch</label>
+                    <select id="branch" disabled required>
+                        <option value="" disabled selected>Select Branch first</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="semester">Semester</label>
+                    <select id="semester" required>
+                        <option value="" disabled selected>Select Semester</option>
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                        <option value="3">Semester 3</option>
+                        <option value="4">Semester 4</option>
+                        <option value="5">Semester 5</option>
+                        <option value="6">Semester 6</option>
+                        <option value="7">Semester 7</option>
+                        <option value="8">Semester 8</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="section">Section</label>
+                    <select id="section">
+                        <option value="All Sections">All Sections</option>
+                        <option value="A">Section A</option>
+                        <option value="B">Section B</option>
+                        <option value="C">Section C</option>
+                        <option value="D">Section D</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="batchYear">Batch Year</label>
+                    <input type="text" id="batchYear" placeholder="e.g. 2024-2028" required>
+                </div>
+
+                <!-- Default Quiz Metadata -->
+                <div class="form-group full-width" style="margin-top: 10px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <label for="subjectName" style="color: var(--primary);">Default Subject Name</label>
+                    <input type="text" id="subjectName" placeholder="e.g. Database Management Systems" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="defaultDate">Default Date & Time</label>
+                    <input type="datetime-local" id="defaultDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="defaultDuration">Default Duration (Minutes)</label>
+                    <input type="number" id="defaultDuration" placeholder="e.g. 60" required min="1">
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn btn-secondary" id="skipBtn">Skip for Now</button>
+                <button type="submit" class="btn btn-primary">Save & Continue</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check auth token before rendering
+            if (!localStorage.getItem('quizmuj_token')) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Dynamic Dropdown Logic
+            const programSelect = document.getElementById('program');
+            const branchSelect = document.getElementById('branch');
+
+            const branchOptions = {
+                'B.Tech': ['CSE', 'AIML', 'DSE', 'Mechanical', 'Civil', 'Electrical'],
+                'BBA': ['Marketing', 'Finance', 'HR', 'Business Analytics'],
+                'BCA': ['General', 'Data Science', 'Cloud Computing']
+            };
+
+            programSelect.addEventListener('change', function() {
+                const selectedProgram = this.value;
+                branchSelect.innerHTML = '<option value="" disabled selected>Select Branch</option>';
+                
+                if (branchOptions[selectedProgram]) {
+                    branchSelect.disabled = false;
+                    branchOptions[selectedProgram].forEach(branch => {
+                        const option = document.createElement('option');
+                        option.value = option.textContent = branch;
+                        branchSelect.appendChild(option);
+                    });
+                } else {
+                    branchSelect.disabled = true;
+                }
+            });
+
+            // Handle Save & Continue
+            document.getElementById('wizardForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // Construct Context Object
+                const adminContext = {
+                    program: document.getElementById('program').value,
+                    branch: document.getElementById('branch').value,
+                    semester: document.getElementById('semester').value,
+                    section: document.getElementById('section').value,
+                    batchYear: document.getElementById('batchYear').value,
+                    subjectName: document.getElementById('subjectName').value,
+                    defaultDate: document.getElementById('defaultDate').value,
+                    defaultDuration: document.getElementById('defaultDuration').value
+                };
+
+                // Save to Session Storage
+                sessionStorage.setItem('quizmuj_admin_context', JSON.stringify(adminContext));
+
+                // Redirect to Admin Dashboard
+                window.location.href = 'admin.html';
+            });
+
+            // Handle Skip
+            document.getElementById('skipBtn').addEventListener('click', () => {
+                sessionStorage.removeItem('quizmuj_admin_context');
+                window.location.href = 'admin.html';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -105,31 +105,31 @@
 
     <!-- Modal Form for External Quiz -->
     <div id="externalQuizModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center;">
-        <div class="modal-content glass-panel" style="background: var(--bg-card); padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 8px 32px rgba(255,121,0,0.2); border: 1px solid rgba(255,255,255,0.1);">
-            <span class="close-modal" style="float: right; font-size: 24px; cursor: pointer;">&times;</span>
-            <h2 style="color: var(--primary); margin-bottom: 20px;">Embed External Form</h2>
+        <div class="modal-content glass-panel" style="background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 8px 32px rgba(255,121,0,0.2); border: 1px solid #ddd;">
+            <span class="close-modal" style="float: right; font-size: 24px; cursor: pointer; color: #333;">&times;</span>
+            <h2 style="color: #ff7900; margin-bottom: 20px; text-align: left; margin-top: 0;">Embed External Form</h2>
             <form id="externalQuizForm" style="display: flex; flex-direction: column; gap: 15px;">
                 <div class="form-group" style="display: flex; flex-direction: column; text-align: left;">
-                    <label style="margin-bottom: 5px; font-weight: 500;">Quiz Title</label>
-                    <input type="text" id="extQuizTitle" required placeholder="e.g. Midterm CS-Sem-4" style="padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: var(--text-color);">
+                    <label style="margin-bottom: 5px; font-weight: 500; color: #333;">Quiz Title</label>
+                    <input type="text" id="extQuizTitle" required placeholder="e.g. Midterm CS-Sem-4" style="padding: 10px; border-radius: 6px; border: 1px solid #ccc; background: #fff; color: #333; font-size: 1rem;">
                 </div>
                 <div class="form-group" style="display: flex; flex-direction: column; text-align: left;">
-                    <label style="margin-bottom: 5px; font-weight: 500;">External URL (Google/MS Form)</label>
-                    <input type="url" id="extQuizUrl" required placeholder="https://docs.google.com/forms/..." style="padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: var(--text-color);">
+                    <label style="margin-bottom: 5px; font-weight: 500; color: #333;">External URL (Google/MS Form)</label>
+                    <input type="url" id="extQuizUrl" required placeholder="https://docs.google.com/forms/..." style="padding: 10px; border-radius: 6px; border: 1px solid #ccc; background: #fff; color: #333; font-size: 1rem;">
                 </div>
                 <div class="form-group" style="display: flex; flex-direction: column; text-align: left;">
-                    <label style="margin-bottom: 5px; font-weight: 500;">Target Batch</label>
-                    <input type="text" id="extQuizBatch" placeholder="e.g. CS-Sem-4" style="padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: var(--text-color);">
+                    <label style="margin-bottom: 5px; font-weight: 500; color: #333;">Target Batch</label>
+                    <input type="text" id="extQuizBatch" placeholder="e.g. CS-Sem-4" style="padding: 10px; border-radius: 6px; border: 1px solid #ccc; background: #fff; color: #333; font-size: 1rem;">
                 </div>
                 <div class="form-group" style="display: flex; flex-direction: column; text-align: left;">
-                    <label style="margin-bottom: 5px; font-weight: 500;">Scheduled Time</label>
-                    <input type="datetime-local" id="extQuizTime" required style="padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: var(--text-color);">
+                    <label style="margin-bottom: 5px; font-weight: 500; color: #333;">Scheduled Time</label>
+                    <input type="datetime-local" id="extQuizTime" required style="padding: 10px; border-radius: 6px; border: 1px solid #ccc; background: #fff; color: #333; font-size: 1rem;">
                 </div>
-                <button type="submit" class="primary-btn" style="margin-top: 10px; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Save & Embed</button>
+                <button type="submit" class="primary-btn" style="margin-top: 10px; padding: 12px; background: #ff7900; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1rem;">Save & Embed</button>
             </form>
         </div>
     </div>
 
-    <script src="admin.js"></script>
+    <script src="admin.js?v=2"></script>
 </body>
 </html>

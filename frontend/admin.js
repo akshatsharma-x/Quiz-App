@@ -154,6 +154,118 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 6. MODULE 6: CSV BULK IMPORT (Drag & Drop)
+    const bulkImportCard = document.getElementById('bulkImportCard');
+    const bulkImportModal = document.getElementById('bulkImportModal');
+    const closeBulkModal = document.querySelector('.close-bulk-modal');
+    const dropZone = document.getElementById('dropZone');
+    const csvFileInput = document.getElementById('csvFileInput');
+    const dropText = document.getElementById('dropText');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+
+    if (bulkImportCard && bulkImportModal && closeBulkModal) {
+        bulkImportCard.addEventListener('click', () => {
+            bulkImportModal.style.display = 'flex';
+        });
+
+        closeBulkModal.addEventListener('click', () => {
+            bulkImportModal.style.display = 'none';
+        });
+
+        // Close on outside click
+        bulkImportModal.addEventListener('click', (e) => {
+            if (e.target === bulkImportModal) bulkImportModal.style.display = 'none';
+        });
+    }
+
+    if (dropZone && csvFileInput) {
+        // Trigger hidden file input when clicking the drop zone
+        dropZone.addEventListener('click', () => csvFileInput.click());
+
+        // Handle styling when file is hovered over the drop zone
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.background = '#ffe5b4'; // Darker orange tint
+            dropZone.style.transform = 'scale(1.02)';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.background = '#fffaf0';
+            dropZone.style.transform = 'scale(1)';
+        });
+
+        // Handle the actual file drop event
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.background = '#fffaf0';
+            dropZone.style.transform = 'scale(1)';
+            
+            if (e.dataTransfer.files.length) {
+                handleFileUpload(e.dataTransfer.files[0]);
+            }
+        });
+
+        // Handle classic browser manual file selection
+        csvFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+    }
+
+    // Process the file using fetch and FormData to upload via multer
+    async function handleFileUpload(file) {
+        if (!file.name.endsWith('.csv')) {
+            return showToastAlert('❌ Invalid file type. Please upload a .csv file.');
+        }
+
+        dropText.innerText = `Selected: ${file.name}`;
+        uploadProgress.style.display = 'block';
+        
+        // Faux progress bar for UX (Wait 1 sec)
+        setTimeout(() => progressBar.style.width = '70%', 100);
+
+        // Building the FormData payload required for multipart/form-data
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('http://localhost:5001/api/v1/admin/questions/bulk', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                    // Do NOT set Content-Type header manually when sending FormData, 
+                    // the browser automatically sets it with the correct multipart boundary!
+                },
+                body: formData
+            });
+
+            const data = await res.json();
+            progressBar.style.width = '100%';
+
+            setTimeout(() => {
+                if (res.ok) {
+                    showToastAlert(`✅ Success! ${data.message}`);
+                    bulkImportModal.style.display = 'none';
+                } else {
+                    showToastAlert(`❌ Upload failed: ${data.error}`);
+                }
+                
+                // Reset UI state
+                uploadProgress.style.display = 'none';
+                progressBar.style.width = '0%';
+                dropText.innerText = 'Drag & Drop CSV File Or Click to Browse';
+                csvFileInput.value = '';
+            }, 800);
+
+        } catch (error) {
+            uploadProgress.style.display = 'none';
+            showToastAlert('❌ Network error during upload.');
+        }
+    }
+
     function showToastAlert(message) {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');

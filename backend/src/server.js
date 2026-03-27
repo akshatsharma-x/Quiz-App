@@ -107,6 +107,22 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Track Exact Duration of Focus Loss (Forensics)
+  socket.on('focusRestored', ({ durationMs }) => {
+    const student = liveTestTakers.get(socket.id);
+    if(student) {
+      // Calculate off-screen time in seconds
+      const secondsOffScreen = (durationMs / 1000).toFixed(1);
+      console.log(`[FORENSICS] ${student.name} was off-screen for ${secondsOffScreen}s`);
+      
+      io.to('admin_room').emit('cheatAlert', {
+        name: student.name,
+        warnings: student.warnings,
+        message: `Student was off-screen for exactly ${secondsOffScreen} seconds!`
+      });
+    }
+  });
+
   // 4. Cleanup on disconnect (Student submits or closes browser)
   socket.on('disconnect', () => {
     activeUsers--;

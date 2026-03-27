@@ -69,10 +69,14 @@
                 quizId: 'DBMS_MID_01' 
             });
 
-            // 3. The Proctoring / Visibility API Logic
+            // 3. The Proctoring / Visibility API Logic (Advanced Forensics)
+            let focusLostTime = 0;
+
             document.addEventListener("visibilitychange", () => {
                 if (document.hidden) {
-                    // The student minimized the window or clicked a different tab!
+                    // Window lost focus! Record the timestamp
+                    focusLostTime = Date.now();
+                    
                     console.warn("Visibility lost! Emitting cheat alert to server...");
                     socket.emit('tabSwitchDetected');
                     
@@ -80,6 +84,16 @@
                     const warningBox = document.getElementById('cheatWarning');
                     warningBox.style.display = 'block';
                     setTimeout(() => warningBox.style.display = 'none', 5000);
+                } else {
+                    // Window regained focus! Calculate the exact penalty duration
+                    if (focusLostTime > 0) {
+                        const durationMs = Date.now() - focusLostTime;
+                        console.log(`Focus restored after ${durationMs}ms`);
+                        
+                        // Emit duration to the advanced security forensics server
+                        socket.emit('focusRestored', { durationMs });
+                        focusLostTime = 0; // reset
+                    }
                 }
             });
         }

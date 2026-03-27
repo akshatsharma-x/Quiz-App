@@ -87,3 +87,68 @@ exports.createExternalQuiz = async (req, res, next) => {
     next(error);
   }
 };
+
+const fs = require('fs');
+const csv = require('csv-parser');
+const QuestionBank = require('../models/QuestionBank');
+
+// @desc    Bulk import questions from CSV via Dropzone
+// @route   POST /api/v1/admin/questions/bulk
+// @access  Private/Admin
+exports.bulkImportQuestions = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'Please upload a CSV file' });
+    }
+
+    const results = [];
+    const questionsToInsert = [];
+
+    // Parse CSV Stream to Memory
+    fs.createReadStream(req.file.path)
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', async () => {
+        // Prepare data for high-performance insertMany
+        results.forEach(row => {
+          // Expected Columns: QuestionText, Option1, Option2, Option3, Option4, CorrectAnswer, Explanation, Tags
+          const options = [row.Option1, row.Option2, row.Option3, row.Option4].filter(opt => opt && opt.trim() !== '');
+          
+          if (row.QuestionText && options.length >= 2 && row.CorrectAnswer) {
+            questionsToInsert.push({
+              questionText: row.QuestionText,
+              options: options,
+              correctAnswer: row.CorrectAnswer,
+              explanation: row.Explanation || '',
+              tags: row.Tags ? row.Tags.split(',').map(tag => tag.trim()) : [],
+              createdBy: req.user.id
+            });
+          }
+        });
+
+        // Clean up temporary Multer file
+        fs.unlinkSync(req.file.path);
+
+        if (questionsToInsert.length === 0) {
+          return res.status(400).json({ success: false, error: 'No valid questions found in CSV. Check column headers.' });
+        }
+
+        // Extremely fast bulk insertion natively into MongoDB
+        const inserted = await QuestionBank.insertMany(questionsToInsert);
+
+        res.status(201).json({ 
+          success: true, 
+          message: `Successfully imported ${inserted.length} questions into the bank.`,
+          count: inserted.length
+        });
+      })
+      .on('error', (err) => {
+        fs.unlinkSync(req.file.path);
+        next(err);
+      });
+
+  } catch (error) {
+    if (req.file) fs.unlinkSync(req.file.path);
+    next(error);
+  }
+};

@@ -109,14 +109,33 @@ exports.createQuiz = async (req, res, next) => {
   }
 };
 
+// @desc    Calculate Fast-Answer Forensics (Midddleware Utility)
+const calculateTimeDeltaForensics = (metrics, auditLogArray) => {
+  let isFlagged = false;
+  if (!metrics || metrics.length === 0) return isFlagged;
+
+  metrics.forEach(m => {
+    if (m.timeSpentSeconds !== undefined && m.timeSpentSeconds < 3) {
+      // Impossible to read and process in under 3s - clearly cheating or botting
+      isFlagged = true;
+      auditLogArray.push({
+        action: 'network_disconnect', // Using existing enum, conceptually similar to erratic behavior
+        details: `Impossibly fast answer duration for Question ${m.questionId}: ${m.timeSpentSeconds} seconds.`
+      });
+    }
+  });
+  return isFlagged;
+};
+
 // @desc    Submit Native Quiz & Auto Evaluate
 // @route   POST /api/v1/quizzes/:id/submit
 // @access  Private
 exports.submitQuiz = async (req, res, next) => {
   try {
     const quizId = req.params.id;
-    const { answers, tabSwitches, timeSpentSeconds } = req.body; // array of { questionId, selectedOption }
+    const { answers, tabSwitches, timeSpentSeconds, questionMetrics } = req.body; 
 
+    // ... fetch quiz ...
     const quiz = await Quiz.findById(quizId);
 
     if (!quiz) {
@@ -142,13 +161,30 @@ exports.submitQuiz = async (req, res, next) => {
     // Auto Evaluate
     let score = 0;
     const totalPossibleScore = quiz.questions.length * quiz.pointsPerQuestion;
-
+    
+    // Evaluate Questions
+    const finalMetrics = [];
     quiz.questions.forEach(question => {
       const studentAnswer = answers.find(a => a.questionId.toString() === question._id.toString());
-      if (studentAnswer && studentAnswer.selectedOption === question.correctAnswer) {
-        score += quiz.pointsPerQuestion;
+      const isCorrect = studentAnswer && studentAnswer.selectedOption === question.correctAnswer;
+      if (isCorrect) score += quiz.pointsPerQuestion;
+      
+      // Correlate with metrics if sent
+      const qtMetric = questionMetrics ? questionMetrics.find(m => m.questionId.toString() === question._id.toString()) : null;
+      if (qtMetric) {
+        finalMetrics.push({
+          questionId: question._id,
+          timeSpentSeconds: qtMetric.timeSpentSeconds,
+          isCorrect
+        });
       }
     });
+
+    const auditLog = [];
+    // Advanced Forensics check 
+    const fastAnswerFlag = calculateTimeDeltaForensics(finalMetrics, auditLog);
+    const hasManyTabSwitches = (tabSwitches && tabSwitches > 3);
+    const overallFlagged = fastAnswerFlag || hasManyTabSwitches;
 
     const result = new Result({
       user: req.user.id,
@@ -156,7 +192,10 @@ exports.submitQuiz = async (req, res, next) => {
       score,
       totalPossibleScore,
       tabSwitches: tabSwitches || 0,
-      timeSpentSeconds
+      timeSpentSeconds,
+      questionMetrics: finalMetrics,
+      auditLog: auditLog,
+      isFlagged: overallFlagged
     });
 
     await result.save();

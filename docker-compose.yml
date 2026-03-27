@@ -13,7 +13,8 @@ services:
       - PORT=3000
       # Override the MongoDB URI so Docker references the internal 'mongo' container network
       - MONGO_URI=mongodb://mongo:27017/quizmuj
-      # JWT_SECRET and SMTP variables would ideally be populated here in production or via .env overrides
+    env_file:
+      - ./backend/.env
     depends_on:
       - mongo
     restart: unless-stopped

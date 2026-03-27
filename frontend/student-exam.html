@@ -96,6 +96,52 @@
                     }
                 }
             });
+
+            // 4. MODULE 7: Global Announcements Receiver
+            socket.on('announcement', (message) => {
+                const warningBox = document.getElementById('cheatWarning');
+                const prevDisplay = warningBox.style.display;
+                
+                // Show a beautiful blue animated toast for announcements
+                warningBox.style.background = 'rgba(56, 189, 248, 0.1)';
+                warningBox.style.borderColor = '#38bdf8';
+                warningBox.style.color = '#38bdf8';
+                warningBox.innerText = `📢 ADMIN MSG: ${message}`;
+                warningBox.style.display = 'block';
+
+                setTimeout(() => {
+                    warningBox.style.display = 'none';
+                    // Reset to red anti-cheat styles later
+                    setTimeout(() => {
+                        warningBox.style.background = 'rgba(255, 71, 87, 0.1)';
+                        warningBox.style.borderColor = '#ff4757';
+                        warningBox.style.color = '#ff4757';
+                        warningBox.innerText = '🚨 TAB SWITCH DETECTED. THE INVIGILATOR HAS BEEN NOTIFIED.';
+                    }, 500); 
+                }, 8000);
+            });
+
+            // 5. MODULE 7: Force End Exam Receiver
+            socket.on('forceSubmitTimer', () => {
+                const warningBox = document.getElementById('cheatWarning');
+                
+                warningBox.style.background = 'rgba(239, 68, 68, 0.2)';
+                warningBox.style.borderColor = '#ef4444';
+                warningBox.style.color = '#ef4444';
+                warningBox.innerText = '🚨 TIME IS UP! EXAM FORCE-ENDED BY ADMIN. SUBMITTING IN 3 SECONDS...';
+                warningBox.style.display = 'block';
+                
+                let countdown = 3;
+                const interval = setInterval(() => {
+                    countdown--;
+                    warningBox.innerText = `🚨 TIME IS UP! EXAM FORCE-ENDED BY ADMIN. SUBMITTING IN ${countdown} SECONDS...`;
+                    if (countdown <= 0) {
+                        clearInterval(interval);
+                        // In a real app, logic to bundle arrays and POST. For demo:
+                        location.reload(); 
+                    }
+                }, 1000);
+            });
         }
     </script>
 </body>

@@ -268,8 +268,8 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            email: emailField.value, 
-                            password: document.getElementById('password').value 
+                            email: emailField.value.trim().toLowerCase(), 
+                            password: document.getElementById('password').value.trim() 
                         })
                     });
                     const data = await res.json();

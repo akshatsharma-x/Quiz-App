@@ -123,7 +123,22 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 4. Cleanup on disconnect (Student submits or closes browser)
+  // 5. MODULE 7: Global Announcements
+  socket.on('adminAnnouncement', (message) => {
+    // Requires admin validation in a real app, assuming admin for learning
+    console.log(`[BROADCAST] Admin Announcement: ${message}`);
+    // Broadcast to ALL connected students securely
+    socket.broadcast.emit('announcement', message);
+  });
+
+  // 6. MODULE 7: Force End Exam
+  socket.on('adminForceEndExam', (quizId) => {
+    console.log(`[FORCE SUBMIT] Admin force-ending Quiz: ${quizId}`);
+    // Broadcast ONLY to students currently in this specific quiz room!
+    io.to(`quiz_${quizId}`).emit('forceSubmitTimer');
+  });
+
+  // 7. Cleanup on disconnect (Student submits or closes browser)
   socket.on('disconnect', () => {
     activeUsers--;
     io.emit('activeUsers', activeUsers);

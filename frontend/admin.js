@@ -266,6 +266,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // 7. MODULE 7: Global Announcements & Force Submit
+    const announcementCard = document.getElementById('announcementCard');
+    const forceEndBtn = document.getElementById('forceEndBtn');
+
+    if (announcementCard) {
+        announcementCard.addEventListener('click', () => {
+            const msg = prompt("Enter the Global Announcement to broadcast to ALL students:");
+            if (msg && msg.trim() !== "") {
+                socket.emit('adminAnnouncement', msg);
+                showToastAlert(`📢 Broadcast sent: "${msg}"`);
+            }
+        });
+    }
+
+    if (forceEndBtn) {
+        forceEndBtn.addEventListener('click', () => {
+            const targetQuiz = prompt("ENTER EXACT QUIZ ID TO FORCE END:");
+            if (targetQuiz && targetQuiz.trim() !== "") {
+                if(confirm(`⚠️ DANGER: Force submit all exams for Quiz ${targetQuiz}?`)) {
+                    socket.emit('adminForceEndExam', targetQuiz.trim());
+                    showToastAlert(`🚨 Force End signal sent to Quiz Room: ${targetQuiz}`);
+                }
+            }
+        });
+    }
+
     function showToastAlert(message) {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');

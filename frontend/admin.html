@@ -80,6 +80,12 @@
                 <span class="card-desc">Upload questions via CSV</span>
             </div>
 
+            <div class="card" id="announcementCard">
+                <span class="card-icon">📢</span>
+                <span class="card-title">Global Broadcast</span>
+                <span class="card-desc">Send live alerts</span>
+            </div>
+
             <div class="card">
                 <span class="card-icon">⚙️</span>
                 <span class="card-title">System Settings</span>
@@ -87,8 +93,14 @@
             </div>
         </div>
 
-        <h2 class="section-title">🔴 Live Exam Room Monitoring</h2>
-        <table class="data-table">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="section-title" style="margin-bottom: 0;">🔴 Live Exam Room Monitoring</h2>
+            <button id="forceEndBtn" style="background: #ff4757; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <span>⚠️ Force End Exam</span>
+            </button>
+        </div>
+        
+        <table class="data-table" style="margin-top: 15px;">
             <thead>
                 <tr>
                     <th>Student Name</th>

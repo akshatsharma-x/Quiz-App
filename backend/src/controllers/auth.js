@@ -96,8 +96,11 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    console.log(`[AUTH DIAGNOSTIC] Login Attempt Initiated. Email: '${email}', Password length: ${password ? password.length : 0}`);
+
     // Validate email & password format
     if (!email || !password) {
+      console.log(`[AUTH DIAGNOSTIC] Failed: Missing email or password`);
       return next(new ErrorResponse('Please provide an email and password', 400));
     }
 
@@ -105,28 +108,37 @@ exports.login = async (req, res, next) => {
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
+      console.log(`[AUTH DIAGNOSTIC] Failed: User not found in DB for email: '${email}'`);
       return next(new ErrorResponse('Invalid credentials', 401));
     }
 
+    console.log(`[AUTH DIAGNOSTIC] User found. Role: ${user.role}, Password length: ${user.password ? user.password.length : 'undefined'}`);
+
     // Domain check only for students (not admins)
     if (user.role !== 'admin' && !email.endsWith('@muj.manipal.edu')) {
+      console.log(`[AUTH DIAGNOSTIC] Failed: Domain check failed for user.role=${user.role}`);
       return next(new ErrorResponse('Access restricted to @muj.manipal.edu domains only', 401));
     }
 
     // Check if user is verified (skip for admins)
     if (user.role !== 'admin' && !user.isVerified) {
+      console.log(`[AUTH DIAGNOSTIC] Failed: User not verified`);
       return next(new ErrorResponse('Please verify your email first', 401));
     }
 
     // Check if password matches
     const isMatch = await user.matchPassword(password);
+    console.log(`[AUTH DIAGNOSTIC] bcrypt matchPassword returned: ${isMatch}`);
 
     if (!isMatch) {
+      console.log(`[AUTH DIAGNOSTIC] Failed: Password does not match hash!`);
       return next(new ErrorResponse('Invalid credentials', 401));
     }
 
+    console.log(`[AUTH DIAGNOSTIC] Success! Generating and sending signed JWT...`);
     sendTokenResponse(user, 200, res);
   } catch (error) {
+    console.log(`[AUTH DIAGNOSTIC] FATAL ERROR CATCH BLOCK: `, error);
     next(error);
   }
 };

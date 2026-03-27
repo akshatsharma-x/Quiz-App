@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  web:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: quizmuj-backend
+    ports:
+      - "5001:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Override the MongoDB URI so Docker references the internal 'mongo' container network
+      - MONGO_URI=mongodb://mongo:27017/quizmuj
+      # JWT_SECRET and SMTP variables would ideally be populated here in production or via .env overrides
+    depends_on:
+      - mongo
+    restart: unless-stopped
+    networks:
+      - quizmuj-network
+
+  mongo:
+    image: mongo:6-jammy
+    container_name: quizmuj-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    networks:
+      - quizmuj-network
+
+volumes:
+  mongo-data:
+
+networks:
+  quizmuj-network:
+    driver: bridge

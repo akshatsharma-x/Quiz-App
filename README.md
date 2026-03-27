@@ -126,29 +126,6 @@ You can open it directly in your browser.
 4. Submit your answers.
 5. View your final score.
 
----
-
-# Screenshots
-
-You can add screenshots here to make the project visually appealing.
-
-Example:
-
-```
-screenshots/
-   quiz.png
-   result.png
-```
-
-Then include them like this:
-
-```
-![Quiz Interface](screenshots/quiz.png)
-![Quiz Result](screenshots/result.png)
-```
-
----
-
 # Future Improvements
 
 * Add **user login and authentication**

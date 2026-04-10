@@ -21,10 +21,12 @@ exports.getQuizzes = async (req, res, next) => {
       query = {};
     }
 
-    const quizzes = await Quiz.find(query).populate({
-      path: 'createdBy',
-      select: 'name'
-    });
+    const quizzes = await Quiz.find(query)
+      .sort({ startTime: 1 })
+      .populate({
+        path: 'createdBy',
+        select: 'name'
+      });
 
     res.status(200).json({
       success: true,
@@ -99,6 +101,15 @@ exports.createQuiz = async (req, res, next) => {
     }
 
     const quiz = await Quiz.create(req.body);
+
+    // Compute the target broadcast room
+    let targetRoom = 'All';
+    if (quiz.targetProgram && quiz.targetProgram !== 'All') {
+      targetRoom = `${quiz.targetProgram}-${quiz.targetBranch}-${quiz.targetBatchYear}-${quiz.targetSemester}-${quiz.targetSection}`.replace(/\s+/g, '_');
+    }
+
+    // Ping the correct Socket.io Room in real-time
+    req.app.get('io').to(targetRoom).emit('new-quiz-available', quiz);
 
     res.status(201).json({
       success: true,

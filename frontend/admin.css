@@ -139,5 +139,103 @@ body {
     font-size: 0.8rem;
     font-weight: bold;
 }
-.status.success { background: #e8f5e9; color: #2e7d32; }
 .status.error { background: #ffebee; color: #c62828; }
+
+/* Admin Scheduled Quizzes Grid */
+.scheduled-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.admin-quiz-card {
+    background: rgba(255, 255, 255, 0.85); /* Glass feel */
+    border-top: 4px solid #ff7900;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.admin-quiz-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(255, 121, 0, 0.15);
+}
+
+.admin-quiz-card h3 {
+    margin: 5px 0 10px 0;
+    color: #333;
+    font-size: 1.2rem;
+}
+
+/* Badges */
+.card-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.badge-native {
+    background-color: #ffe0b2;
+    color: #e65100;
+    border: 1px solid #ffb74d;
+}
+
+.badge-external {
+    background-color: #f5f5f5;
+    color: #616161;
+    border: 1px solid #e0e0e0;
+}
+
+/* Target Pills */
+.target-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+
+.target-pill {
+    background: rgba(255, 121, 0, 0.1);
+    border: 1px solid rgba(255, 121, 0, 0.2);
+    color: #cc6000;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.time-window {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #ddd;
+}
+
+.admin-quiz-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.admin-quiz-actions button {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.admin-quiz-actions button:hover { opacity: 0.8; }
+.btn-view { background: #ff7900; color: white; }
+.btn-delete { background: white; color: #ff4757; border: 1px solid #ff4757 !important; }

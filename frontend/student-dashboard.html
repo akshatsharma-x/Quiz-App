@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | QuizMUJ</title>
+    <!-- Socket.io -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="stylesheet" href="student-dashboard.css">
+</head>
+<body class="dark-mode">
+
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <nav class="navbar glass">
+        <div class="navbar-brand">QuizMUJ <span class="badge">STUDENT</span></div>
+        <div class="nav-actions">
+            <!-- Notification Bell -->
+            <div class="notification-wrapper">
+                <button class="icon-btn" id="bellBtn">🔔</button>
+                <span class="notification-dot" id="notifDot"></span>
+            </div>
+            
+            <div class="profile-dropdown">
+                <div class="avatar" id="profileAvatar">S</div>
+                <div class="dropdown-menu glass" id="profileMenu">
+                    <a href="#" id="myProfileBtn">My Profile</a>
+                    <a href="#" id="settingsBtn">Settings</a>
+                    <a href="#" id="toggleDarkMode">Toggle Theme</a>
+                    <a href="#" id="logoutBtn">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <!-- Dynamic Welcome -->
+        <header class="welcome-section fade-in">
+            <h1 id="dynamicGreeting">Loading...</h1>
+            <p>Ready to conquer your goals today?</p>
+            <p id="timeDateDisplay" class="time-display"></p>
+        </header>
+
+
+
+        <!-- Student Facilities / Quick Access -->
+        <section class="facilities-grid">
+            <a href="student-exam.html" class="facility-card glass hover-effect slide-up" style="--delay: 0.35s">
+                <div class="facility-icon">📝</div>
+                <div class="facility-info">
+                    <h3>Focus Exam</h3>
+                    <p>Proctored Environment</p>
+                </div>
+            </a>
+            <a href="student-analytics.html" class="facility-card glass hover-effect slide-up" style="--delay: 0.4s">
+                <div class="facility-icon">📊</div>
+                <div class="facility-info">
+                    <h3>Analytics</h3>
+                    <p>Review Performance</p>
+                </div>
+            </a>
+            <a href="student-leaderboard.html" class="facility-card glass hover-effect slide-up" style="--delay: 0.45s">
+                <div class="facility-icon">🏆</div>
+                <div class="facility-info">
+                    <h3>Leaderboard</h3>
+                    <p>Check Your Rank</p>
+                </div>
+            </a>
+        </section>
+
+        <!-- Action Center -->
+        <section class="action-center">
+            <div class="action-column glass slide-up" style="--delay: 0.4s">
+                <h2>🔴 Live & Upcoming Quizzes</h2>
+                <ul class="quiz-list" id="upcomingQuizzes">
+                    <!-- Populated by JS -->
+                </ul>
+            </div>
+            <div class="action-column glass slide-up" style="--delay: 0.5s">
+                <h2>📈 Recent Results</h2>
+                <ul class="quiz-list" id="recentResults">
+                    <!-- Populated by JS -->
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script src="student-dashboard.js"></script>
+</body>
+</html>

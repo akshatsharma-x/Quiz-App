@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Performance | QuizMUJ</title>
+    <link rel="stylesheet" href="student-analytics.css">
+</head>
+<body class="dark-mode">
+
+    <nav class="navbar glass">
+        <div class="navbar-brand">QuizMUJ <span class="badge">ANALYTICS</span></div>
+        <div class="nav-actions">
+            <a href="student-dashboard.html" class="nav-link">Dashboard</a>
+            <button class="nav-btn" id="toggleDarkMode">Toggle Theme</button>
+        </div>
+    </nav>
+
+    <main class="analytics-container">
+        
+        <!-- Header -->
+        <header class="page-header fade-in">
+            <h1>Deep Analytics & Growth</h1>
+            <p>Analyze your strengths, track historical performance, and review mistakes.</p>
+        </header>
+
+        <!-- Top Section: Chart & Stats -->
+        <section class="top-split slide-up" style="--delay: 0.1s">
+            
+            <!-- Canvas Radar Chart Section -->
+            <div class="chart-panel glass">
+                <h2>Proficiency Radar</h2>
+                <div class="canvas-wrapper">
+                    <!-- Pure HTML5 Canvas. NO Chart.js -->
+                    <canvas id="radarChart" width="400" height="400"></canvas>
+                </div>
+            </div>
+
+            <!-- Actionable Feedback (Latest Exam) -->
+            <div class="feedback-panel glass slide-up" style="--delay: 0.2s">
+                <h2>Actionable Feedback: Advanced Data Structures</h2>
+                <p class="subtitle">Review your mistakes to improve.</p>
+                <div class="feedback-list" id="feedbackList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Bottom Section: Historical Data Table -->
+        <section class="history-section glass slide-up" style="--delay: 0.3s">
+            <div class="table-header">
+                <h2>Historical Attempts</h2>
+                <input type="text" id="searchInput" class="search-bar glass" placeholder="Search exams (e.g. Math, Midterm)...">
+            </div>
+            
+            <div class="table-responsive">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Exam Name</th>
+                            <th>Date</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <button id="prevPage" class="page-btn">Previous</button>
+                <span id="pageInfo">Page 1 of 3</span>
+                <button id="nextPage" class="page-btn">Next</button>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="student-analytics.js"></script>
+</body>
+</html>

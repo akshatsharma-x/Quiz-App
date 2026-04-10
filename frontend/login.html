@@ -278,7 +278,7 @@
 
                     localStorage.setItem('quizmuj_token', data.token);
                     alert("Login Successful! Redirecting...");
-                    window.location.href = selectedRole === 'admin' ? 'admin-wizard.html' : 'dashboard.html';
+                    window.location.href = selectedRole === 'admin' ? 'admin-wizard.html' : 'student-dashboard.html';
 
                 } else if (loginMode === 'requestOtp') {
                     // Request OTP
@@ -321,7 +321,7 @@
 
                     localStorage.setItem('quizmuj_token', data.token);
                     alert("OTP Verified! Redirecting...");
-                    window.location.href = selectedRole === 'admin' ? 'admin-wizard.html' : 'dashboard.html';
+                    window.location.href = selectedRole === 'admin' ? 'admin-wizard.html' : 'student-dashboard.html';
                 }
             } catch (err) {
                 alert(err.message);

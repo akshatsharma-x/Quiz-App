@@ -3,6 +3,15 @@ let questionCounter = 0;
 document.addEventListener('DOMContentLoaded', () => {
     // Add the first empty question block by default
     addQuestionBlock();
+
+    // Smart Pre-fill Logic: Auto-populate from Admin Post-Login Wizard targeting configurations
+    ['targetProgram', 'targetBranch', 'targetBatchYear', 'targetSemester', 'targetSection'].forEach(key => {
+        const savedVal = sessionStorage.getItem(`adminPrefill_${key}`);
+        if (savedVal) {
+            const el = document.getElementById(key);
+            if (el) el.value = savedVal;
+        }
+    });
 });
 
 function addQuestionBlock() {
@@ -64,7 +73,7 @@ function addOptionField(qId) {
 }
 
 // Extract DOM into API-Ready JSON Payload
-function generateJSON() {
+async function generateJSON() {
     const title = document.getElementById('quizTitle').value;
     if(!title) { alert("Quiz Title is required!"); return; }
 
@@ -76,7 +85,14 @@ function generateJSON() {
         description: document.getElementById('quizDesc').value,
         type: 'native',
         timeLimit: parseInt(document.getElementById('timeLimit').value),
-        assignedBatches: document.getElementById('cohort').value.split(',').map(s => s.trim()),
+        targetProgram: document.getElementById('targetProgram').value,
+        targetBranch: document.getElementById('targetBranch').value,
+        targetBatchYear: document.getElementById('targetBatchYear').value,
+        targetSemester: document.getElementById('targetSemester').value,
+        targetSection: document.getElementById('targetSection').value,
+        // Mock start/end times since UI lacks them for brevity
+        startTime: new Date(),
+        endTime: new Date(Date.now() + 86400000 * 7), // active for 7 days
         questions: []
     };
 
@@ -113,9 +129,33 @@ function generateJSON() {
     document.getElementById('debugPanel').style.display = 'block';
     document.getElementById('jsonOutput').innerText = JSON.stringify(payload, null, 4);
 
-    console.log("READY TO POST:", payload);
-    // Future Network Request:
-    // fetch('/api/v1/admin/quizzes', { method: 'POST', body: JSON.stringify(payload) })
-    
-    alert("Quiz Payload Generated Successfully! Scroll down to view the JSON output.");
+    // Initiate the POST request to the backend Native Quiz API
+    try {
+        const token = localStorage.getItem('quizmuj_token');
+        if (!token) {
+            alert('Unauthorized. Please log in.');
+            return;
+        }
+
+        const res = await fetch('http://localhost:5001/api/v1/quizzes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        
+        if (res.ok) {
+            alert("✅ Native Quiz Configured & Activated! Routing back to the Dashboard.");
+            window.location.href = 'admin.html';
+        } else {
+            alert(`❌ Failed to create quiz: ${data.error}`);
+        }
+    } catch (error) {
+        console.error("Critical Network Error:", error);
+        alert("Network disconnected while saving quiz. Please check server.");
+    }
 }

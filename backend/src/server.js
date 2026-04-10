@@ -20,6 +20,7 @@ app.use(express.json());
 const authRouter = require('./routes/auth');
 const quizzesRouter = require('./routes/quizzes');
 const adminRouter = require('./routes/admin');
+const studentRouter = require('./routes/student');
 
 // Enable CORS
 app.use(cors());
@@ -28,6 +29,7 @@ app.use(cors());
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/quizzes', quizzesRouter);
 app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/student', studentRouter);
 
 // Basic health check route
 app.get('/api/health', (req, res) => {
@@ -56,6 +58,9 @@ const io = socketio(server, {
   }
 });
 
+// Expose io instance to Express routes
+app.set('io', io);
+
 // Master Tracking Map in Server Memory for the Live Exam Room
 const liveTestTakers = new Map(); // socket.id -> { userId, name, email, quizId, startTime, warnings }
 
@@ -72,6 +77,23 @@ io.on('connection', (socket) => {
     // Instantly hydrate the admin's table with current test-takers
     socket.emit('liveTakersUpdate', Array.from(liveTestTakers.values()));
   });
+
+  // 1B. Students connecting to Dashboard: Grouping them by Demographic Cohorts
+  socket.on('joinCohortRoom', (studentData) => {
+    // Generate the specific combination string. Replace spaces with underscores for robust room names.
+    const { program, branch, batchYear, semester, section } = studentData;
+    
+    // Fallback handling to ensure rooms strings are uniform
+    if (!program || !branch) return;
+
+    // e.g., 'B.Tech-CSE-2024-2028-Semester 4-A'
+    const roomName = `${program}-${branch}-${batchYear}-${semester}-${section}`.replace(/\s+/g, '_');
+    
+    socket.join(roomName);
+    socket.join('All'); // Universal broadcast fallback group
+    console.log(`[TARGETING] Student joined WebSocket Room: ${roomName}`);
+  });
+
 
   // 2. Students starting an exam
   socket.on('startLiveExam', (studentData) => {

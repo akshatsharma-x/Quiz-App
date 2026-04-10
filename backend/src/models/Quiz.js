@@ -46,20 +46,33 @@ const QuizSchema = new mongoose.Schema({
       return this.type === 'google_form';
     }
   },
-  // ADVANCED QUIZ MANAGEMENT: Link to the centralized Question Bank
-  questions: [{
-    type: mongoose.Schema.ObjectId,
-    ref: 'QuestionBank'
-  }],
+  // ADVANCED QUIZ MANAGEMENT: Embedding the subdocument directly so raw JSON payloads from frontend save flawlessly.
+  questions: [QuestionSchema],
   // LMS FEATURE: Strict Time Constraint
   timeLimit: {
     type: Number, // In minutes. 30 = 30-minute auto-submit
     required: function() { return this.type === 'native'; }
   },
-  // LMS FEATURE: Cohort Assignments
-  assignedBatches: {
-    type: [String], // Automatically assigned to "All" if empty
-    default: ['All']
+  // LMS FEATURE: Cohort Assignments & Targeted Scheduling
+  targetProgram: {
+    type: String, // e.g. B.Tech, BBA, 'All'
+    default: 'All'
+  },
+  targetBranch: {
+    type: String, // e.g. CSE, IT, 'All'
+    default: 'All'
+  },
+  targetBatchYear: {
+    type: String, // e.g. 2024-2028, 'All'
+    default: 'All'
+  },
+  targetSemester: {
+    type: String, // e.g. Semester 4, 'All'
+    default: 'All'
+  },
+  targetSection: {
+    type: String, // e.g. A, B, 'All'
+    default: 'All'
   },
   pointsPerQuestion: {
     type: Number,

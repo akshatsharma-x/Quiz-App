@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile | QuizMUJ</title>
+    <!-- Basic fallback layout imports -->
+    <link rel="stylesheet" href="student-dashboard.css">
+    <link rel="stylesheet" href="profile-setup.css">
+</head>
+<body class="dark-mode setup-bg">
+
+    <!-- The unskippable backdrop -->
+    <div class="modal-overlay show un-skippable">
+        <div class="modal-content glass setup-modal">
+            <div class="modal-header">
+                <h2>Welcome to QuizMUJ! 🎓</h2>
+                <p>Before we begin, please lock in your academic identity to receive the correct quizzes.</p>
+            </div>
+            
+            <form id="setupForm" class="setup-form">
+                
+                <div class="form-group">
+                    <label for="programSelect">Program</label>
+                    <select id="programSelect" class="glass-input" name="program" required>
+                        <option value="" disabled selected>Select Program</option>
+                        <option value="B.Tech">B.Tech</option>
+                        <option value="BBA">BBA</option>
+                        <option value="BCA">BCA</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="branchSelect">Branch</label>
+                    <select id="branchSelect" class="glass-input" name="Branch" required disabled>
+                        <option value="" disabled selected>Select Branch</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="batchYearSelect">Batch Year</label>
+                    <select id="batchYearSelect" class="glass-input" name="Batch Year" required disabled>
+                        <option value="" disabled selected>Select Batch Year</option>
+                    </select>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="semesterSelect">Semester</label>
+                        <select id="semesterSelect" class="glass-input" name="Semester" required disabled>
+                            <option value="" disabled selected>Semester</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sectionSelect">Section</label>
+                        <select id="sectionSelect" class="glass-input" name="Section" required disabled>
+                            <option value="" disabled selected>Section</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" id="saveProfileBtn" class="primary-btn pulse-glow">Save & Continue</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="profile-setup.js"></script>
+</body>
+</html>

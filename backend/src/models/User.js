@@ -48,11 +48,27 @@ const UserSchema = new mongoose.Schema({
     default: false
   },
   
-  // LMS FEATURE: Cohort Management
-  batch: {
+  // LMS FEATURE: Cohort Management & Academic Identity
+  program: {
+    type: String,
+    trim: true
+  },
+  branch: {
+    type: String,
+    trim: true
+  },
+  batchYear: {
+    type: String,
+    trim: true
+  },
+  semester: {
+    type: String,
+    trim: true
+  },
+  section: {
     type: String,
     trim: true,
-    index: true // Indexed for rapid querying (e.g., getting all students in a section)
+    index: true // Indexed for rapid querying
   },
 
   // LMS FEATURE: Performance Optimization (Denormalization)

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard | QuizMUJ</title>
+    <link rel="stylesheet" href="student-leaderboard.css">
+</head>
+<body class="dark-mode">
+
+    <nav class="navbar glass">
+        <div class="navbar-brand">QuizMUJ <span class="badge">GLOBAL</span></div>
+        <div class="nav-actions">
+            <a href="student-dashboard.html" class="nav-link">Dashboard</a>
+            
+            <div class="profile-dropdown">
+                <div class="avatar" id="profileAvatar">A</div>
+                <div class="dropdown-menu glass" id="profileMenu">
+                    <a href="#" id="myProfileBtn">My Profile</a>
+                    <a href="#" id="settingsBtn">Settings</a>
+                    <a href="#" id="toggleDarkMode">Toggle Theme</a>
+                    <a href="#" id="logoutBtn" style="color: var(--danger-color)">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="leaderboard-container">
+        <!-- Header -->
+        <header class="page-header fade-in">
+            <h1>Hall of Fame 🏆</h1>
+            <p>The top 5 brightest minds across the university. Can you dethrone them?</p>
+        </header>
+
+        <!-- Current User Rank Context -->
+        <div class="user-rank-banner glass slide-up" style="--delay: 0.1s">
+            <div class="rank-info">
+                <span class="user-badge">You</span>
+                <h2>Akshat Sharma</h2>
+            </div>
+            <div class="rank-stats">
+                <div class="stat">
+                    <span class="label">Rank</span>
+                    <span class="value">#42</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Total XP</span>
+                    <span class="value">12,450 ⚡</span>
+                </div>
+                <div class="stat">
+                    <span class="label">To Next Tier</span>
+                    <span class="value">350 XP</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Leaderboard Panel -->
+        <section class="leaderboard-panel glass slide-up" style="--delay: 0.2s">
+            <div class="panel-header">
+                <h2>Top 5 Overall Leaderboard</h2>
+                <span class="pulse-live">🔴 LIVE</span>
+            </div>
+            
+            <ul class="leaderboard-list" id="leaderboardList">
+                <!-- Populated by JS -->
+            </ul>
+        </section>
+    </main>
+
+    <script src="student-leaderboard.js"></script>
+</body>
+</html>

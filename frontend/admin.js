@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'login.html';
     } else {
         document.body.style.display = 'block';
+        fetchAdminQuizzes();
     }
 
     // 2. LOGOUT LOGIC
@@ -105,6 +106,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (embedExternalCard && externalQuizModal && closeExtModal) {
         embedExternalCard.addEventListener('click', () => {
             externalQuizModal.style.display = 'flex';
+            
+            // Smart Pre-fill Logic
+            ['Program', 'Branch', 'BatchYear', 'Semester', 'Section'].forEach(key => {
+                const savedVal = sessionStorage.getItem(`adminPrefill_target${key}`);
+                if (savedVal) {
+                    const el = document.getElementById(`extTarget${key}`);
+                    if (el) el.value = savedVal;
+                }
+            });
         });
 
         closeExtModal.addEventListener('click', () => {
@@ -126,8 +136,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = {
                 title: document.getElementById('extQuizTitle').value,
                 googleFormUrl: document.getElementById('extQuizUrl').value,
-                targetBatch: document.getElementById('extQuizBatch').value,
-                scheduledTime: document.getElementById('extQuizTime').value
+                scheduledTime: document.getElementById('extQuizTime').value,
+                targetProgram: document.getElementById('extTargetProgram').value,
+                targetBranch: document.getElementById('extTargetBranch').value,
+                targetBatchYear: document.getElementById('extTargetBatchYear').value,
+                targetSemester: document.getElementById('extTargetSemester').value,
+                targetSection: document.getElementById('extTargetSection').value
             };
 
             try {
@@ -145,6 +159,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToastAlert('✅ External Quiz successfully embedded!');
                     externalQuizModal.style.display = 'none';
                     externalQuizForm.reset();
+                    
+                    // Phase 3 Real-time DOM Hydration
+                    if (data.data) {
+                        const grid = document.getElementById('admin-scheduled-quizzes');
+                        if (grid) {
+                            // Remove empty state text if present
+                            if (grid.innerHTML.includes('Loading quizzes...')) grid.innerHTML = '';
+                            grid.insertAdjacentHTML('afterbegin', buildAdminQuizCard(data.data));
+                        }
+                    }
                 } else {
                     showToastAlert(`❌ Error: ${data.error || 'Failed to embed'}`);
                 }
@@ -304,5 +328,66 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.style.animation = 'slideIn 0.3s ease-out reverse forwards';
             setTimeout(() => toast.remove(), 300);
         }, 5000);
+    }
+
+    // 8. SCHEDULED QUIZZES ENGINE (Phase 3)
+    async function fetchAdminQuizzes() {
+        try {
+            const grid = document.getElementById('admin-scheduled-quizzes');
+            if(!grid) return;
+
+            const res = await fetch('http://localhost:5001/api/v1/quizzes', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+
+            if (data.success && data.data.length > 0) {
+                grid.innerHTML = ''; // clear loading
+                data.data.forEach(quiz => {
+                    grid.innerHTML += buildAdminQuizCard(quiz);
+                });
+            } else {
+                grid.innerHTML = '<div style="color: #888;">No quizzes currently configured.</div>';
+            }
+        } catch (error) {
+            console.error('Fetch Error:', error);
+            const grid = document.getElementById('admin-scheduled-quizzes');
+            if(grid) grid.innerHTML = '<div style="color: #ff4757;">Failed to connect to backend.</div>';
+        }
+    }
+
+    // HTML Extractor utility
+    function buildAdminQuizCard(quiz) {
+        const start = new Date(quiz.startTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+        const end = quiz.endTime ? new Date(quiz.endTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+        
+        const badgeType = quiz.type === 'native' ? 'badge-native' : 'badge-external';
+        const typeLabel = quiz.type === 'native' ? 'NATIVE EXAM' : 'EXTERNAL LINK';
+
+        const safePrint = (val) => (!val || val === 'All') ? 'All' : val;
+
+        return `
+            <div class="admin-quiz-card" id="admin-quiz-${quiz._id}">
+                <div>
+                    <span class="card-badge ${badgeType}">${typeLabel}</span>
+                    <h3>${quiz.title}</h3>
+                    
+                    <div class="target-metadata">
+                        <span class="target-pill">🎓 ${safePrint(quiz.targetProgram)} / ${safePrint(quiz.targetBranch)}</span>
+                        <span class="target-pill">📅 ${safePrint(quiz.targetBatchYear)}</span>
+                        <span class="target-pill">🏷 ${safePrint(quiz.targetSemester)} | Sec: ${safePrint(quiz.targetSection)}</span>
+                    </div>
+
+                    <div class="time-window">
+                        <div><strong>Start:</strong> ${start}</div>
+                        <div><strong>End:</strong> ${end}</div>
+                    </div>
+                </div>
+                <div class="admin-quiz-actions">
+                    <button class="btn-view" onclick="alert('View Metrics Dashboard // Integration pending')">View Results</button>
+                    <button class="btn-delete" onclick="alert('Delete API // Integration pending')">Delete</button>
+                </div>
+            </div>
+        `;
     }
 });

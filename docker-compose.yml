@@ -21,6 +21,20 @@ services:
     networks:
       - quizmuj-network
 
+  # Option A: Nginx Client UI Proxy
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: quizmuj-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - web
+    restart: unless-stopped
+    networks:
+      - quizmuj-network
+
   mongo:
     image: mongo:6-jammy
     container_name: quizmuj-db

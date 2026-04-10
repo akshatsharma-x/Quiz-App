@@ -53,6 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Logout Logic ---
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if(confirm("Are you sure you want to log out?")) {
+                localStorage.removeItem('quizmuj_token');
+                localStorage.removeItem('quizmuj_user');
+                window.location.href = 'login.html';
+            }
+        });
+    }
+
     // --- 4. Dynamic Dashboard Rendering (Smart Quiz Filtering) ---
     const upcomingListEl = document.getElementById('upcomingQuizzes');
 

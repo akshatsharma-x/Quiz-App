@@ -129,6 +129,21 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Native Gateway Anti-Cheat Module (Phase 3 Integration)
+  socket.on('proctor-violation', (violationData) => {
+    console.warn(`[SEVERE FORENSICS] ${violationData.studentName} cheated on Quiz ${violationData.quizId}`);
+    
+    // Sync to the existing connection map to render the Admin UI Table Tracker
+    const student = liveTestTakers.get(socket.id);
+    if (student) {
+        student.warnings = violationData.violationCount; // Strict Sync
+        io.to('admin_room').emit('liveTakersUpdate', Array.from(liveTestTakers.values()));
+    }
+
+    // Relay immediately to the Admin Command Center (Sidebar Panel)
+    io.to('admin_room').emit('student-violation-alert', violationData);
+  });
+
   // Track Exact Duration of Focus Loss (Forensics)
   socket.on('focusRestored', ({ durationMs }) => {
     const student = liveTestTakers.get(socket.id);

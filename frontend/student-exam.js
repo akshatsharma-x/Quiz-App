@@ -247,7 +247,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('connect', () => {
         console.log('Focus Mode connected to Proctor Server');
-        socket.emit('join-exam', { user: studentProfile.name || 'Unknown', examId: currentQuizId });
+        
+        // Push the EXACT student identity straight into the Admin's "Live Exam Room Monitoring" Table
+        socket.emit('startLiveExam', { 
+            name: studentProfile.name || 'Unknown', 
+            email: studentProfile.email || 'Unknown Enrollment',
+            quizId: currentQuizId 
+        });
     });
 
     // Page Visibility API - Live Forensics Node

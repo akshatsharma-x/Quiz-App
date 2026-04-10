@@ -60,6 +60,38 @@ document.addEventListener('DOMContentLoaded', () => {
         showToastAlert(`🚨 Anti-Cheat: ${alertData.name} was caught switching tabs! (Warning #${alertData.warnings})`);
     });
 
+    // 🔴 Module 4: Extreme Priority Security Forensics Center Listener
+    socket.on('student-violation-alert', (violationData) => {
+        const alertsContainer = document.getElementById('alerts-container');
+        if (!alertsContainer) return;
+
+        // Clear default placeholder if exists
+        if (alertsContainer.innerHTML.includes('Monitoring real-time')) {
+            alertsContainer.innerHTML = '';
+        }
+
+        // Extract precise Time string
+        const timestamp = new Date(violationData.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        // Construct Glassmorphism Warning Node
+        const alertHtml = `
+            <div class="cheat-alert-card">
+                <strong>🚨 ${violationData.studentName}</strong> (${violationData.rollNo}) 
+                <br> Switched tabs or minimized window! 
+                <div style="margin-top: 5px; font-weight: 600; color: #d32f2f;">
+                    Violation #${violationData.violationCount} on Quiz: ${violationData.quizId}
+                </div>
+                <span class="alert-time">${timestamp}</span>
+            </div>
+        `;
+
+        // Instantly pop the alert at the TOP of the panel feed via insertAdjacentHTML
+        alertsContainer.insertAdjacentHTML('afterbegin', alertHtml);
+
+        // Flash Toast universally 
+        showToastAlert(`🚨 SECURITY BREACH: ${violationData.studentName} switched tabs!`);
+    });
+
     // 4. MODULE 4: ANALYTICS & CSV EXPORT 
     const exportCard = document.getElementById('exportResultsCard');
     if (exportCard) {

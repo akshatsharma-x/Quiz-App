@@ -239,3 +239,44 @@ body {
 .admin-quiz-actions button:hover { opacity: 0.8; }
 .btn-view { background: #ff7900; color: white; }
 .btn-delete { background: white; color: #ff4757; border: 1px solid #ff4757 !important; }
+
+/* --- Module 4: Live Security Forensics Center --- */
+.live-alerts-panel {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 320px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    border-top: 4px solid #ff4757;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 20px rgba(255, 71, 87, 0.15);
+    z-index: 1000;
+}
+
+.cheat-alert-card {
+    background: rgba(255, 235, 238, 0.8);
+    border-left: 4px solid #ff4757;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #c62828;
+    margin-bottom: 8px;
+    animation: flashAlertPulse 1.5s infinite alternate;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.cheat-alert-card .alert-time {
+    display: block;
+    font-size: 0.7rem;
+    color: #888;
+    margin-top: 5px;
+    text-align: right;
+}
+
+@keyframes flashAlertPulse {
+    0% { background: rgba(255, 235, 238, 0.8); border-left-color: #ff4757; }
+    100% { background: rgba(255, 205, 210, 1); border-left-color: #d32f2f; box-shadow: 0 0 10px rgba(255, 71, 87, 0.4); }
+}

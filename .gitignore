@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Secrets – copy backend/.env.example to backend/.env
+.env
+.env.*
+!.env.example
+
+# OS / editor noise
+.DS_Store
+*.log
+npm-debug.log*
+
+# Runtime artefacts
+uploads/

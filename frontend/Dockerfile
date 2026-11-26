@@ -1,17 +1,12 @@
-# Build optimal Nginx image
-FROM nginx:alpine
+FROM nginx:1.27-alpine
 
-# Remove default nginx static assets
+# Static site (HTML/CSS/JS – no build step)
 RUN rm -rf /usr/share/nginx/html/*
-
-# Copy the completely static vanilla JS/HTML files into the container
 COPY . /usr/share/nginx/html/
+RUN rm -f /usr/share/nginx/html/Dockerfile /usr/share/nginx/html/nginx.conf /usr/share/nginx/html/.dockerignore
 
-# Copy the custom Nginx server block configuration to override defaults
+# Server block: static files + reverse proxy to the API / Socket.io
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose HTTP port
 EXPOSE 80
-
-# Boot up the server natively, daemon off so docker traps logs
 CMD ["nginx", "-g", "daemon off;"]

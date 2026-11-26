@@ -3,73 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Focus Mode | QuizMUJ Exam</title>
-    <!-- Socket.io -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <meta name="theme-color" content="#0b1120">
+    <title>Exam | QuizMUJ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/app.css">
     <link rel="stylesheet" href="student-exam.css">
+    <script src="assets/js/app.js"></script>
 </head>
-<body class="dark-mode focus-mode-active">
+<body class="exam-page">
 
-    <!-- Anti-Cheat Warning Modal -->
-    <div id="cheatModal" class="modal-overlay">
-        <div class="modal-content glass warning-glow">
-            <div class="modal-icon">🚨</div>
-            <h2>Focus Lost!</h2>
-            <p>Your action has been recorded. Switching tabs is strictly prohibited.</p>
-            <button id="acknowledgeWarningBtn" class="primary-btn">I Understand</button>
+    <!-- Loading -->
+    <div class="page-loader" id="loading"><div class="loader-ring"></div></div>
+
+    <!-- Lobby -->
+    <main class="lobby container" id="lobby" hidden>
+        <a class="btn btn-ghost btn-sm" href="student-dashboard.html"><svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to dashboard</a>
+        <div class="lobby-grid">
+            <section class="card lobby-card card-accent reveal">
+                <span class="eyebrow" id="lobbyEyebrow">Proctored exam</span>
+                <h1 id="lobbyTitle"></h1>
+                <p class="muted" id="lobbyDesc"></p>
+                <div class="lobby-facts" id="lobbyFacts"></div>
+                <div id="lobbyStatus"></div>
+                <label class="check mt-2" id="agreeWrap"><input type="checkbox" id="agree"> I have read the rules and I’m ready to begin</label>
+                <button class="btn btn-primary btn-lg btn-block mt-2" id="startBtn" disabled>Start exam</button>
+                <p class="hint center mt-1" id="startHint">The exam opens in full-screen focus mode.</p>
+            </section>
+            <aside class="card lobby-rules reveal" style="--d:.08s">
+                <h2><svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Exam rules</h2>
+                <ul>
+                    <li><b>Stay in full screen.</b> Leaving full screen or switching tabs is recorded and reported to your examiner in real time.</li>
+                    <li><b>The timer is server-controlled.</b> It keeps running if you close the tab — you can resume, but you can’t pause.</li>
+                    <li><b>Answers save automatically</b> to the server and this device, so a dropped connection won’t lose your work.</li>
+                    <li><b>One attempt only.</b> When time runs out your answers are submitted automatically.</li>
+                    <li><b>Copying is disabled.</b> Right-click and copy shortcuts are blocked during the exam.</li>
+                </ul>
+                <div class="shortcuts">
+                    <span><kbd class="kbd">A</kbd>–<kbd class="kbd">F</kbd> choose</span>
+                    <span><kbd class="kbd">←</kbd><kbd class="kbd">→</kbd> navigate</span>
+                    <span><kbd class="kbd">R</kbd> mark for review</span>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Exam -->
+    <div class="exam" id="exam" hidden>
+        <header class="exam-bar">
+            <div class="exam-title">
+                <span class="brand-mark" aria-hidden="true">Q</span>
+                <div class="grow">
+                    <strong id="examTitle"></strong>
+                    <span class="exam-sub"><span id="answeredCount">0</span>/<span id="totalCount">0</span> answered</span>
+                </div>
+            </div>
+            <div class="timer" id="timer" role="timer" aria-live="off">
+                <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span id="timerText">--:--</span>
+            </div>
+            <div class="exam-actions">
+                <span class="proctor" id="proctorStatus" title="Proctoring status"><span class="dot dot-good"></span><span class="proctor-text">Proctoring on</span></span>
+                <span class="badge" id="violationBadge" hidden></span>
+                <button class="btn btn-secondary btn-sm palette-toggle" id="paletteToggle" type="button" aria-controls="palette" aria-expanded="false"><svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Questions</button>
+                <button class="btn btn-primary btn-sm" id="submitBtn" type="button">Submit</button>
+            </div>
+            <div class="exam-progress" aria-hidden="true"><span id="progressBar"></span></div>
+        </header>
+
+        <div class="exam-body">
+            <main class="question-pane">
+                <div class="question-card card" id="questionCard">
+                    <div class="q-head">
+                        <span class="q-num" id="qNum">Question 1</span>
+                        <button class="btn btn-ghost btn-sm review-btn" id="reviewBtn" type="button" aria-pressed="false"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Mark for review</span></button>
+                    </div>
+                    <h2 class="q-text" id="qText"></h2>
+                    <div class="options" id="options" role="radiogroup" aria-labelledby="qText"></div>
+                    <div class="q-foot">
+                        <button class="btn btn-secondary" id="prevBtn" type="button"><svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Previous</button>
+                        <button class="link-btn small" id="clearBtn" type="button" aria-label="Clear answer">Clear<span class="hide-sm"> answer</span></button>
+                        <button class="btn btn-primary" id="nextBtn" type="button">Next<svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+                    </div>
+                </div>
+                <div class="save-status" id="saveStatus" aria-live="polite"><svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>All answers saved</span></div>
+            </main>
+
+            <aside class="palette card" id="palette" aria-label="Question palette">
+                <div class="palette-head"><h3>Questions</h3><button class="icon-btn palette-close" id="paletteClose" type="button" aria-label="Close palette"><svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+                <div class="palette-grid" id="paletteGrid"></div>
+                <div class="palette-legend">
+                    <span><i class="lg lg-answered"></i>Answered <b id="lgAnswered">0</b></span>
+                    <span><i class="lg lg-review"></i>For review <b id="lgReview">0</b></span>
+                    <span><i class="lg lg-empty"></i>Not answered <b id="lgEmpty">0</b></span>
+                </div>
+                <button class="btn btn-primary btn-block" id="paletteSubmit" type="button">Review &amp; submit</button>
+            </aside>
         </div>
     </div>
 
-    <!-- Exam Header -->
-    <header class="exam-header glass">
-        <div class="header-left">
-            <h1 id="quizTitle">Advanced Data Structures - Midterm</h1>
+    <!-- Blocking overlays (time up, force-submit, cancelled, full-screen prompt) -->
+    <div class="overlay" id="overlay" hidden>
+        <div class="card overlay-card">
+            <div class="overlay-icon" id="overlayIcon"></div>
+            <h2 id="overlayTitle"></h2>
+            <p class="muted" id="overlayText"></p>
+            <div class="row" style="justify-content:center;margin-top:1.2rem" id="overlayActions"></div>
         </div>
-        <div class="header-center">
-            <div class="timer-display" id="examTimer">60:00</div>
-        </div>
-        <div class="header-right">
-            <button id="finalSubmitBtn" class="primary-btn pulse-submit">Submit Exam</button>
-        </div>
-    </header>
-
-    <main class="exam-layout">
-        <!-- Question Area -->
-        <section class="question-section glass">
-            <div class="question-header">
-                <span class="question-number" id="qNumberDisplay">Question 1 of 5</span>
-                <button id="markReviewBtn" class="secondary-btn">⭐ Mark for Review</button>
-            </div>
-            
-            <div class="question-content" id="qText">
-                <!-- Populated by JS -->
-                Loading question...
-            </div>
-
-            <div class="options-container" id="optionsContainer">
-                <!-- Populated by JS -->
-            </div>
-
-            <div class="navigation-buttons">
-                <button id="prevBtn" class="secondary-btn" disabled>← Previous</button>
-                <span class="save-status" id="saveStatus">Saved</span>
-                <button id="nextBtn" class="primary-btn">Next →</button>
-            </div>
-        </section>
-
-        <!-- Sidebar / Question Grid -->
-        <aside class="exam-sidebar glass">
-            <h3>Question Palette</h3>
-            <div class="grid-legend">
-                <div class="legend-item"><span class="dot answered"></span> Answered</div>
-                <div class="legend-item"><span class="dot unanswered"></span> Unanswered</div>
-                <div class="legend-item"><span class="dot review"></span> Review</div>
-            </div>
-            <div class="question-grid" id="questionGrid">
-                <!-- Populated by JS -->
-            </div>
-        </aside>
-    </main>
+    </div>
 
     <script src="student-exam.js"></script>
 </body>

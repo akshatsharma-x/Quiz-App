@@ -3,90 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>External Quiz Wrapper | QuizMUJ</title>
-    <link rel="stylesheet" href="student-dashboard.css">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <meta name="theme-color" content="#0b1120">
+    <title>External quiz | QuizMUJ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/app.css">
+    <script src="assets/js/app.js"></script>
     <style>
-        .iframe-container {
-            width: 100%;
-            height: calc(100vh - 120px); /* Fill screen minus header space */
-            border: 2px solid var(--primary-orange);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--glass-shadow);
-        }
-        
-        .iframe-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #fff; /* Google Forms usually expect a light background */
-        }
-
-        .header-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .primary-btn.danger {
-            background-color: var(--danger-color);
-        }
-
-        .primary-btn.danger:hover {
-            opacity: 0.8;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-        }
+        .ext-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .ext-bar h1 { font-size: 1.4rem; }
+        .ext-frame { height: calc(100vh - 220px); min-height: 520px; overflow: hidden; padding: 0; }
+        .ext-frame iframe { width: 100%; height: 100%; border: 0; background: #fff; border-radius: var(--radius-lg); }
+        @media (max-width: 720px) { .ext-frame { height: calc(100vh - 260px); } }
     </style>
 </head>
-<body class="dark-mode" style="padding: 2rem;">
-
-    <div class="header-controls">
-        <h2 id="quizTitleDisplay" style="color: var(--primary-orange)">Loading Quiz...</h2>
-        <button class="primary-btn danger" onclick="markExternalCompleted()">Mark as Completed & Return</button>
-    </div>
-
-    <!-- The Wrapping Gateway -->
-    <div class="iframe-container glass">
-        <iframe id="googleFormIframe" src=""></iframe>
-    </div>
-
+<body>
+    <header id="appNav"></header>
+    <main class="container page" id="main">
+        <div class="page-loader"><div class="loader-ring"></div></div>
+    </main>
+    <script src="assets/js/shell.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const quizId = urlParams.get('quizId');
-            const token = localStorage.getItem('quizmuj_token');
+        (async () => {
+            const { requireAuth, api, html, setHTML, icon, fmt, confirmDialog, setLoading, $ } = QM;
+            const user = await requireAuth({ role: 'user' });
+            await QMShell.mount({ active: 'dashboard', user });
+            const main = $('#main');
+            const quizId = new URLSearchParams(location.search).get('quizId');
+            const state = (iconName, title, text) => setHTML(main, html`
+                <div class="card card-pad" style="max-width:620px;margin:2rem auto"><div class="empty">
+                  <div class="empty-icon">${icon(iconName)}</div><h3>${title}</h3><p>${text}</p>
+                  <a class="btn btn-primary" href="student-dashboard.html">Back to dashboard</a></div></div>`);
 
-            if (!quizId || !token) {
-                alert("Unauthorized or Missing Quiz Data.");
-                window.location.href = 'student-dashboard.html';
-                return;
+            if (!quizId || !/^[a-f0-9]{24}$/i.test(quizId)) return state('alert', 'Invalid link', 'Open external quizzes from your dashboard.');
+
+            let quiz;
+            try { quiz = (await api(`/quizzes/${quizId}`)).data; }
+            catch (err) { return state('alert', 'Quiz not available', err.message); }
+            if (quiz.type !== 'google_form') { location.replace(`student-exam.html?quizId=${quizId}`); return; }
+            document.title = `${quiz.title} | QuizMUJ`;
+
+            if (quiz.attempt && quiz.attempt.status === 'submitted') {
+                return state('check-circle', 'Already submitted', `You marked “${quiz.title}” as submitted on ${fmt.dateTime(quiz.attempt.submittedAt)}.`);
             }
+            if (quiz.status === 'scheduled') return state('calendar', 'Not open yet', `“${quiz.title}” opens ${fmt.dateTime(quiz.startTime)}.`);
+            if (quiz.status !== 'live' || !quiz.googleFormUrl) return state('lock', 'This form is closed', `“${quiz.title}” closed on ${fmt.dateTime(quiz.endTime)}.`);
 
-            try {
-                // Fetch the exact Google Form URL from the backend
-                const res = await fetch(`http://localhost:5001/api/v1/quizzes/${quizId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
+            // Use the embeddable variant of Google / Microsoft Forms URLs
+            const embedUrl = (raw) => {
+                try {
+                    const u = new URL(raw);
+                    if (/docs\.google\.com$/.test(u.hostname) && u.pathname.includes('/forms/')) u.searchParams.set('embedded', 'true');
+                    if (/forms\.(office|microsoft)\.com$/.test(u.hostname)) u.searchParams.set('embed', 'true');
+                    return u.protocol === 'https:' || u.protocol === 'http:' ? u.toString() : 'about:blank';
+                } catch (e) { return 'about:blank'; }
+            };
+            const openedAt = new Date().toISOString();
+            const safeHref = /^https?:\/\//i.test(quiz.googleFormUrl) ? quiz.googleFormUrl : '#';
 
-                if (data.success && data.data.type === 'google_form') {
-                    document.getElementById('quizTitleDisplay').textContent = data.data.title;
-                    document.getElementById('googleFormIframe').src = data.data.googleFormUrl || 'about:blank';
-                } else {
-                    alert('Failed to load external quiz structure.');
+            setHTML(main, html`
+                <div class="ext-bar">
+                    <div>
+                        <a class="btn btn-ghost btn-sm" href="student-dashboard.html">${icon('arrow-left', 'icon-sm')}Dashboard</a>
+                        <h1 class="mt-1">${quiz.title}</h1>
+                        <p class="muted small">External form · closes ${fmt.dateTime(quiz.endTime)}</p>
+                    </div>
+                    <div class="row wrap">
+                        <a class="btn btn-secondary" href="${safeHref}" target="_blank" rel="noopener noreferrer">${icon('external', 'icon-sm')}Open in new tab</a>
+                        <button class="btn btn-primary" id="doneBtn" type="button">${icon('check', 'icon-sm')}I’ve submitted the form</button>
+                    </div>
+                </div>
+                <div class="callout mb-2">${icon('info')}<div>Complete the form below, press its own <strong>Submit</strong> button, then confirm here so your instructor sees it as completed. If the form doesn’t load, use “Open in new tab”.</div></div>
+                <div class="card ext-frame"><iframe title="${quiz.title}" src="${embedUrl(quiz.googleFormUrl)}" referrerpolicy="no-referrer" sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe></div>`);
+
+            $('#doneBtn').addEventListener('click', async () => {
+                const ok = await confirmDialog({ title: 'Mark as submitted?', message: 'Only confirm after you have pressed Submit inside the form. You can’t undo this.', confirmText: 'Yes, I submitted it', icon: 'check-circle' });
+                if (!ok) return;
+                const btn = $('#doneBtn');
+                setLoading(btn, true);
+                try {
+                    await api(`/quizzes/${quizId}/complete-external`, { method: 'POST', body: { openedAt } });
+                    QM.flash(`“${quiz.title}” marked as completed.`, 'success');
+                    location.href = 'student-dashboard.html';
+                } catch (err) {
+                    setLoading(btn, false);
+                    QM.toast(err.message, { type: 'error' });
                 }
-            } catch (err) {
-                console.error(err);
-                alert("Network Disconnected.");
-            }
-        });
-
-        function markExternalCompleted() {
-            if(confirm("Have you successfully submitted the Google Form? Continuing will return you to the dashboard.")) {
-                window.location.href = 'student-dashboard.html';
-            }
-        }
+            });
+        })();
     </script>
 </body>
 </html>

@@ -3,89 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard | QuizMUJ</title>
-    <!-- Socket.io -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <meta name="theme-color" content="#0b1120">
+    <title>Dashboard | QuizMUJ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/app.css">
     <link rel="stylesheet" href="student-dashboard.css">
+    <script src="assets/js/app.js"></script>
 </head>
-<body class="dark-mode">
+<body>
+    <header id="appNav"></header>
 
-    <!-- Toast Notifications Container -->
-    <div id="toastContainer" class="toast-container"></div>
-
-    <nav class="navbar glass">
-        <div class="navbar-brand">QuizMUJ <span class="badge">STUDENT</span></div>
-        <div class="nav-actions">
-            <!-- Notification Bell -->
-            <div class="notification-wrapper">
-                <button class="icon-btn" id="bellBtn">🔔</button>
-                <span class="notification-dot" id="notifDot"></span>
+    <main class="container page">
+        <section class="card welcome reveal" id="welcome">
+            <div class="welcome-copy">
+                <span class="eyebrow" id="todayLabel"></span>
+                <h1 id="greeting">Welcome back</h1>
+                <p class="muted" id="welcomeLine">Loading your quizzes…</p>
+                <div class="chip-list mt-2" id="cohortChips"></div>
             </div>
-            
-            <div class="profile-dropdown">
-                <div class="avatar" id="profileAvatar">S</div>
-                <div class="dropdown-menu glass" id="profileMenu">
-                    <a href="#" id="myProfileBtn">My Profile</a>
-                    <a href="#" id="settingsBtn">Settings</a>
-                    <a href="#" id="toggleDarkMode">Toggle Theme</a>
-                    <a href="#" id="logoutBtn">Logout</a>
+            <div class="tier-card" id="tierCard">
+                <div class="skeleton sk-block"></div>
+            </div>
+        </section>
+
+        <section class="stats mt-3" id="stats" aria-label="Your stats">
+            <div class="card stat"><div class="skeleton sk-line" style="width:50%"></div><div class="skeleton sk-line" style="height:26px;width:70%"></div></div>
+            <div class="card stat"><div class="skeleton sk-line" style="width:50%"></div><div class="skeleton sk-line" style="height:26px;width:70%"></div></div>
+            <div class="card stat"><div class="skeleton sk-line" style="width:50%"></div><div class="skeleton sk-line" style="height:26px;width:70%"></div></div>
+            <div class="card stat"><div class="skeleton sk-line" style="width:50%"></div><div class="skeleton sk-line" style="height:26px;width:70%"></div></div>
+        </section>
+
+        <div class="dash-grid mt-3">
+            <section class="card reveal" style="--d:.05s" aria-labelledby="quizzesTitle">
+                <div class="card-head">
+                    <h2 id="quizzesTitle"><svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Your quizzes</h2>
+                    <div class="segmented" role="group" aria-label="Filter quizzes" id="quizFilter">
+                        <button type="button" data-filter="all" aria-pressed="true">All</button>
+                        <button type="button" data-filter="live" aria-pressed="false">Live</button>
+                        <button type="button" data-filter="scheduled" aria-pressed="false">Upcoming</button>
+                        <button type="button" data-filter="done" aria-pressed="false">Completed</button>
+                    </div>
                 </div>
-            </div>
+                <div class="quiz-list" id="quizList">
+                    <div class="quiz-row"><div class="skeleton sk-block grow"></div></div>
+                    <div class="quiz-row"><div class="skeleton sk-block grow"></div></div>
+                </div>
+            </section>
+
+            <aside class="stack">
+                <section class="card reveal" style="--d:.1s" aria-labelledby="recentTitle">
+                    <div class="card-head">
+                        <h2 id="recentTitle"><svg class="icon" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Recent results</h2>
+                        <a class="small" href="student-analytics.html">View all</a>
+                    </div>
+                    <div class="card-body" id="recentResults">
+                        <div class="skeleton sk-line"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line"></div>
+                    </div>
+                </section>
+                <section class="card reveal quick-links" style="--d:.15s" aria-label="Shortcuts">
+                    <a href="student-analytics.html" class="quick-link"><span class="ql-icon"><svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span><strong>Analytics</strong><small>Topic mastery &amp; mistakes</small></span></a>
+                    <a href="student-leaderboard.html" class="quick-link"><span class="ql-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></span><span><strong>Leaderboard</strong><small>See where you rank</small></span></a>
+                    <a href="profile-setup.html" class="quick-link"><span class="ql-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span><strong>My profile</strong><small>Cohort &amp; password</small></span></a>
+                </section>
+            </aside>
         </div>
-    </nav>
-
-    <main class="dashboard-container">
-        <!-- Dynamic Welcome -->
-        <header class="welcome-section fade-in">
-            <h1 id="dynamicGreeting">Loading...</h1>
-            <p>Ready to conquer your goals today?</p>
-            <p id="timeDateDisplay" class="time-display"></p>
-        </header>
-
-
-
-        <!-- Student Facilities / Quick Access -->
-        <section class="facilities-grid">
-            <a href="student-exam.html" class="facility-card glass hover-effect slide-up" style="--delay: 0.35s">
-                <div class="facility-icon">📝</div>
-                <div class="facility-info">
-                    <h3>Focus Exam</h3>
-                    <p>Proctored Environment</p>
-                </div>
-            </a>
-            <a href="student-analytics.html" class="facility-card glass hover-effect slide-up" style="--delay: 0.4s">
-                <div class="facility-icon">📊</div>
-                <div class="facility-info">
-                    <h3>Analytics</h3>
-                    <p>Review Performance</p>
-                </div>
-            </a>
-            <a href="student-leaderboard.html" class="facility-card glass hover-effect slide-up" style="--delay: 0.45s">
-                <div class="facility-icon">🏆</div>
-                <div class="facility-info">
-                    <h3>Leaderboard</h3>
-                    <p>Check Your Rank</p>
-                </div>
-            </a>
-        </section>
-
-        <!-- Action Center -->
-        <section class="action-center">
-            <div class="action-column glass slide-up" style="--delay: 0.4s">
-                <h2>🔴 Live & Upcoming Quizzes</h2>
-                <ul class="quiz-list" id="upcomingQuizzes">
-                    <!-- Populated by JS -->
-                </ul>
-            </div>
-            <div class="action-column glass slide-up" style="--delay: 0.5s">
-                <h2>📈 Recent Results</h2>
-                <ul class="quiz-list" id="recentResults">
-                    <!-- Populated by JS -->
-                </ul>
-            </div>
-        </section>
     </main>
 
-    <script src="student-dashboard.js?v=3"></script>
+    <script src="assets/js/shell.js"></script>
+    <script src="student-dashboard.js"></script>
 </body>
 </html>

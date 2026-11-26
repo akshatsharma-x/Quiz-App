@@ -1,207 +1,116 @@
-// frontend/student-analytics.js
-document.addEventListener('DOMContentLoaded', () => {
+/* Student analytics: KPIs, score trend, topic mastery, mistakes and attempt history */
+(async () => {
+  const { requireAuth, api, html, setHTML, icon, fmt, toast, debounce, $ } = QM;
 
-    // --- Theme Toggle ---
-    const toggleDarkModeBtn = document.getElementById('toggleDarkMode');
-    const body = document.body;
+  const user = await requireAuth({ role: 'user' });
+  await QMShell.mount({ active: 'analytics', user });
 
-    if(localStorage.getItem('theme') === 'light') {
-        body.classList.replace('dark-mode', 'light-mode');
-    }
+  let analytics;
+  let history;
+  try {
+    const [a, h] = await Promise.all([api('/student/analytics'), api('/student/results')]);
+    analytics = a.data;
+    history = h.data;
+  } catch (err) {
+    toast(err.message, { type: 'error', title: 'Could not load analytics' });
+    return;
+  }
 
-    toggleDarkModeBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (body.classList.contains('dark-mode')) {
-            body.classList.replace('dark-mode', 'light-mode');
-            localStorage.setItem('theme', 'light');
-        } else {
-            body.classList.replace('light-mode', 'dark-mode');
-            localStorage.setItem('theme', 'dark');
-        }
-        // Redraw canvas dynamically to fix colors if needed
-        drawRadarChart();
-    });
+  // ---- KPIs ----------------------------------------------------------------------------------------
+  const s = analytics.summary;
+  const tiles = [
+    { label: 'Average score', value: s.avgPercentage === null ? '—' : fmt.pct(s.avgPercentage, 1), meta: `${s.attempts} scored quiz${s.attempts === 1 ? '' : 'zes'}`, ic: 'target' },
+    { label: 'Best score', value: s.bestPercentage === null ? '—' : fmt.pct(s.bestPercentage, 1), meta: 'Personal best', ic: 'star' },
+    { label: 'XP earned', value: fmt.compact(s.xp), meta: '10 XP per point scored', ic: 'zap' },
+    { label: 'Time on exams', value: fmt.duration(s.totalTimeSeconds), meta: 'Across all attempts', ic: 'clock' }
+  ];
+  setHTML($('#kpis'), tiles.map((t, i) => html`
+    <div class="card stat reveal" style="--d:${i * 0.04}s">
+      <div class="stat-top"><span class="stat-label">${t.label}</span><span class="stat-icon">${icon(t.ic)}</span></div>
+      <div class="stat-value">${t.value}</div>
+      <div class="stat-meta">${t.meta}</div>
+    </div>`));
 
-    // --- 1. Pure HTML5 Canvas Radar Chart ---
-    // Data definition
-    const chartData = {
-        labels: ['Data Structures', 'Algorithms', 'Databases', 'Networking', 'Operating Systems'],
-        data: [0.85, 0.70, 0.90, 0.60, 0.75] // Scale 0 to 1
-    };
+  // ---- Score trend ---------------------------------------------------------------------------------
+  QMCharts.line($('#trendChart'), {
+    title: 'Score trend',
+    subtitle: analytics.trend.length
+      ? `Percentage scored on your last ${analytics.trend.length} quiz${analytics.trend.length === 1 ? '' : 'zes'}`
+      : 'Percentage scored per quiz',
+    data: analytics.trend.map((t) => ({ label: fmt.dateShort(t.submittedAt), value: t.percentage, detail: t.quizTitle, full: t })),
+    tooltipLabel: (d) => `${d.full.quizTitle} · ${fmt.date(d.full.submittedAt)}`,
+    categoryName: 'Quiz',
+    valueName: 'Score',
+    format: (v) => `${Math.round(v * 10) / 10}%`,
+    emptyText: 'Complete a quiz to start your trend line.'
+  });
 
-    function drawRadarChart() {
-        const canvas = document.getElementById('radarChart');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        
-        const width = canvas.width;
-        const height = canvas.height;
-        const centerX = width / 2;
-        const centerY = height / 2;
-        
-        // Settings
-        const radius = Math.min(centerX, centerY) - 40; // padding
-        const numSides = chartData.labels.length;
-        const angleStep = (Math.PI * 2) / numSides;
-        
-        // Theme dependent colors
-        const isLight = body.classList.contains('light-mode');
-        const gridColor = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)';
-        const textColor = isLight ? '#0f172a' : '#f1f5f9';
-        const primaryOrange = '#ff7900';
-        const fillOrange = 'rgba(255, 121, 0, 0.3)';
+  // ---- Mastery ----------------------------------------------------------------------------------------
+  if (analytics.proficiencyMode === 'quizzes') {
+    $('#masteryTitle').textContent = 'Accuracy by quiz';
+    $('#masterySub').textContent = 'Tag your questions by topic to unlock topic mastery';
+  }
+  // Tags are stored lowercase: show short ones as acronyms (os → OS, sql → SQL, dbms → DBMS), capitalise the rest
+  const topicName = (t) => (t.length <= 3 || /^[^aeiou\s]{4,5}$/i.test(t) ? t.toUpperCase() : t.replace(/^./, (c) => c.toUpperCase()));
+  const rows = analytics.proficiency
+    .slice()
+    .sort((a, b) => b.accuracy - a.accuracy)
+    .map((p) => ({
+      name: analytics.proficiencyMode === 'tags' ? topicName(p.label) : p.label,
+      sub: p.total ? `${p.correct}/${p.total} correct` : '',
+      value: p.accuracy,
+      figure: fmt.pct(p.accuracy, 1)
+    }));
+  QMCharts.meterList($('#mastery'), rows, { emptyText: 'Your topic mastery appears once answers for your quizzes are revealed.' });
 
-        ctx.clearRect(0, 0, width, height);
-
-        // 1. Draw web/grid (concentric polygons)
-        const levels = 5;
-        ctx.strokeStyle = gridColor;
-        ctx.lineWidth = 1;
-        
-        for (let i = 1; i <= levels; i++) {
-            const levelRadius = radius * (i / levels);
-            ctx.beginPath();
-            for (let j = 0; j <= numSides; j++) {
-                const angle = j * angleStep - Math.PI / 2; // -PI/2 to start at top
-                const x = centerX + levelRadius * Math.cos(angle);
-                const y = centerY + levelRadius * Math.sin(angle);
-                if (j === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-        }
-
-        // 2. Draw axes and labels
-        ctx.font = '12px Inter, sans-serif';
-        ctx.fillStyle = textColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        for (let i = 0; i < numSides; i++) {
-            const angle = i * angleStep - Math.PI / 2;
-            const x = centerX + radius * Math.cos(angle);
-            const y = centerY + radius * Math.sin(angle);
-            
-            // Draw axis line
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-
-            // Draw label slightly outside
-            const labelX = centerX + (radius + 20) * Math.cos(angle);
-            const labelY = centerY + (radius + 20) * Math.sin(angle);
-            ctx.fillText(chartData.labels[i], labelX, labelY);
-        }
-
-        // 3. Plot data polygon
-        ctx.beginPath();
-        for (let i = 0; i < numSides; i++) {
-            const val = chartData.data[i];
-            const angle = i * angleStep - Math.PI / 2;
-            const x = centerX + radius * val * Math.cos(angle);
-            const y = centerY + radius * val * Math.sin(angle);
-            
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-        
-        // Fill and stroke
-        ctx.fillStyle = fillOrange;
-        ctx.fill();
-        ctx.strokeStyle = primaryOrange;
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        // 4. Draw data points
-        for (let i = 0; i < numSides; i++) {
-            const val = chartData.data[i];
-            const angle = i * angleStep - Math.PI / 2;
-            const x = centerX + radius * val * Math.cos(angle);
-            const y = centerY + radius * val * Math.sin(angle);
-            
-            ctx.beginPath();
-            ctx.arc(x, y, 5, 0, Math.PI * 2);
-            ctx.fillStyle = primaryOrange;
-            ctx.fill();
-            ctx.strokeStyle = body.classList.contains('light-mode') ? '#fff' : '#0b0f19';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-    }
-
-    // Initial draw
-    drawRadarChart();
-
-
-    // --- 2. Actionable Feedback ---
-    const feedbackListEl = document.getElementById('feedbackList');
-    const mockFeedback = [
-        {
-            q: "What is the time complexity of searching in a perfectly balanced binary search tree?",
-            selected: "O(n)",
-            correct: "O(log n)"
-        },
-        {
-            q: "Which sorting algorithm has the worst-case time complexity of O(n²)?",
-            selected: "Merge Sort",
-            correct: "Quick Sort"
-        }
-    ];
-
-    mockFeedback.forEach(fb => {
-        feedbackListEl.innerHTML += `
-            <div class="feedback-item">
-                <div class="feedback-q">${fb.q}</div>
-                <div class="feedback-ans ans-wrong">❌ Your Answer: ${fb.selected}</div>
-                <div class="feedback-ans ans-correct">✅ Correct Answer: ${fb.correct}</div>
+  // ---- Mistakes ---------------------------------------------------------------------------------------
+  const fb = analytics.latestFeedback;
+  if (!fb) {
+    setHTML($('#feedback'), html`<div class="empty"><div class="empty-icon">${icon('lock')}</div><h3>Nothing to review yet</h3><p>${analytics.pendingReveal
+      ? `Answers for your ${analytics.pendingReveal} most recent quiz${analytics.pendingReveal === 1 ? '' : 'zes'} unlock when the quiz window closes.`
+      : 'Once you complete a quiz and its answers are revealed, your mistakes show up here.'}</p></div>`);
+  } else {
+    setHTML($('#feedbackLink'), html`<a class="btn btn-secondary btn-sm" href="student-result.html?quizId=${fb.quizId}">Full review</a>`);
+    const intro = html`<p class="muted small mb-2">From <strong>${fb.quizTitle}</strong> · ${fmt.date(fb.submittedAt)} · scored ${fmt.pct(fb.percentage, 1)}${analytics.pendingReveal ? ` · ${analytics.pendingReveal} newer quiz${analytics.pendingReveal === 1 ? '' : 'zes'} still locked` : ''}</p>`;
+    setHTML($('#feedback'), fb.mistakes.length
+      ? html`${intro}${fb.mistakes.slice(0, 6).map((m) => html`
+          <div class="mistake">
+            <h4>${m.questionText}</h4>
+            <div class="ans-pair">
+              <div class="ans wrong">${icon('x', 'icon-sm')}<div><small>Your answer</small>${m.selectedOption || 'Not answered'}</div></div>
+              <div class="ans right">${icon('check', 'icon-sm')}<div><small>Correct answer</small>${m.correctAnswer}</div></div>
             </div>
-        `;
-    });
+            ${m.explanation ? html`<p class="why">${icon('info', 'icon-sm')} ${m.explanation}</p>` : ''}
+          </div>`)}${fb.mistakes.length > 6 ? html`<p class="small subtle mt-2">+${fb.mistakes.length - 6} more in the full review.</p>` : ''}`
+      : html`${intro}<div class="callout good">${icon('check-circle')}<div><strong>Flawless!</strong> You didn’t miss a single question in this quiz.</div></div>`);
+  }
 
-
-    // --- 3. Historical Data Table ---
-    const historyTableBody = document.getElementById('historyTableBody');
-    const searchInput = document.getElementById('searchInput');
-
-    const mockHistory = [
-        { name: 'Advanced Data Structures Midterm', date: 'Oct 8, 2023', score: '75%', status: 'Passed' },
-        { name: 'Operating Systems Quiz 1', date: 'Sep 25, 2023', score: '92%', status: 'Passed' },
-        { name: 'Computer Networks Basics', date: 'Sep 10, 2023', score: '45%', status: 'Failed' },
-        { name: 'Database Normalization', date: 'Aug 21, 2023', score: '88%', status: 'Passed' },
-        { name: 'Software Engineering Principles', date: 'Aug 05, 2023', score: '100%', status: 'Passed' }
-    ];
-
-    function renderTable(filter = '') {
-        historyTableBody.innerHTML = '';
-        
-        const filtered = mockHistory.filter(h => 
-            h.name.toLowerCase().includes(filter.toLowerCase())
-        );
-
-        if (filtered.length === 0) {
-            historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No results found</td></tr>`;
-            return;
-        }
-
-        filtered.forEach(h => {
-            const statusClass = h.status === 'Passed' ? 'passed' : 'failed';
-            historyTableBody.innerHTML += `
-                <tr>
-                    <td><strong>${h.name}</strong></td>
-                    <td>${h.date}</td>
-                    <td><strong>${h.score}</strong></td>
-                    <td><span class="status-badge ${statusClass}">${h.status}</span></td>
-                    <td><button class="review-btn" onclick="alert('Viewing analytics for ${h.name}...')">Review</button></td>
-                </tr>
-            `;
-        });
-    }
-
-    renderTable();
-
-    searchInput.addEventListener('input', (e) => {
-        renderTable(e.target.value);
-    });
-});
+  // ---- History table -----------------------------------------------------------------------------------
+  const PAGE = 8;
+  let page = 1;
+  let query = '';
+  const renderHistory = () => {
+    const list = history.filter((h) => h.quizTitle.toLowerCase().includes(query));
+    const pages = Math.max(1, Math.ceil(list.length / PAGE));
+    page = Math.min(page, pages);
+    const slice = list.slice((page - 1) * PAGE, page * PAGE);
+    setHTML($('#history'), slice.length ? slice.map((h) => html`
+      <tr>
+        <td><strong>${h.quizTitle}</strong>${h.quizType === 'google_form' ? html`<br><span class="xsmall subtle">External form</span>` : ''}</td>
+        <td class="nowrap">${fmt.dateTime(h.submittedAt)}</td>
+        <td class="num">${h.quizType === 'google_form' ? '—' : html`<strong>${fmt.pct(h.percentage, 1)}</strong><br><span class="xsmall subtle">${h.score}/${h.totalPossibleScore} pts</span>`}</td>
+        <td>${h.quizType === 'google_form' ? html`<span class="badge badge-good">${icon('check', 'icon-sm')}Submitted</span>`
+          : html`<span class="badge ${h.passed ? 'badge-good' : 'badge-critical'}">${icon(h.passed ? 'check' : 'x', 'icon-sm')}${h.passed ? 'Pass' : 'Fail'}</span>`}</td>
+        <td class="num">${fmt.duration(h.timeSpentSeconds)}</td>
+        <td class="actions">${h.quizId && h.quizType !== 'google_form' ? html`<a class="btn btn-ghost btn-sm" href="student-result.html?quizId=${h.quizId}">Review ${icon('chevron-right', 'icon-sm')}</a>` : ''}</td>
+      </tr>`)
+      : html`<tr><td colspan="6"><div class="empty"><div class="empty-icon">${icon('inbox')}</div><h3>${query ? 'No matches' : 'No attempts yet'}</h3><p>${query ? 'Try a different search.' : 'Your completed quizzes will be listed here.'}</p></div></td></tr>`);
+    $('#pageInfo').textContent = list.length ? `Showing ${(page - 1) * PAGE + 1}–${Math.min(page * PAGE, list.length)} of ${list.length}` : '';
+    $('#prevPage').disabled = page <= 1;
+    $('#nextPage').disabled = page >= pages;
+  };
+  $('#search').addEventListener('input', debounce((e) => { query = e.target.value.trim().toLowerCase(); page = 1; renderHistory(); }, 150));
+  $('#prevPage').addEventListener('click', () => { page--; renderHistory(); });
+  $('#nextPage').addEventListener('click', () => { page++; renderHistory(); });
+  renderHistory();
+})();

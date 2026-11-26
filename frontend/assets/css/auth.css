@@ -1,0 +1,71 @@
+/* Auth pages (login / register): split layout with the MUJ campus photo */
+.auth-shell { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(420px, .92fr); }
+
+.auth-hero {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 2.2rem;
+  padding: 2.2rem 2.6rem; color: #fff; isolation: isolate;
+  /* Anchored top-left so the university crest in the photo is always fully visible */
+  background: #05070d url('../../manipal.avif') left top / cover no-repeat;
+}
+.auth-hero::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(5, 7, 13, .05) 0%, rgba(5, 7, 13, .1) 35%, rgba(5, 7, 13, .78) 72%, rgba(5, 7, 13, .95) 100%),
+    linear-gradient(20deg, rgba(255, 106, 0, .28) 0%, transparent 45%);
+}
+.hero-copy { max-width: 520px; animation: reveal .8s var(--ease) both .1s; }
+.hero-copy .eyebrow { color: #ffb15c; }
+.hero-copy h1 { font-size: clamp(2rem, 3.4vw, 3rem); line-height: 1.06; margin: .7rem 0 .9rem; letter-spacing: -.03em; }
+.hero-copy h1 span { background: linear-gradient(90deg, #ffb15c, #ff7a00); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero-copy p { color: rgba(255, 255, 255, .82); font-size: 1.02rem; max-width: 46ch; }
+.hero-points { list-style: none; padding: 0; margin: 1.6rem 0 0; display: grid; gap: .75rem; }
+.hero-points li { display: flex; align-items: center; gap: .75rem; color: rgba(255, 255, 255, .9); font-size: .93rem; font-weight: 550; }
+.hero-points .pt-icon {
+  width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none;
+  background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .18); backdrop-filter: blur(6px);
+}
+.hero-points .pt-icon .icon { width: 17px; height: 17px; color: #ffb15c; }
+.hero-foot { font-size: .8rem; color: rgba(255, 255, 255, .6); display: flex; gap: 1rem; flex-wrap: wrap; }
+
+.auth-panel { display: flex; align-items: center; justify-content: center; padding: 2.5rem 1.5rem; position: relative; }
+.auth-panel .theme-fab { position: absolute; top: 1.2rem; right: 1.2rem; }
+.auth-card { width: 100%; max-width: 420px; animation: reveal .6s var(--ease) both; }
+.auth-card > header { margin-bottom: 1.6rem; }
+.auth-card > header .brand { margin-bottom: 1.6rem; }
+.auth-card > header h2 { font-size: 1.65rem; font-weight: 800; letter-spacing: -.02em; }
+.auth-card > header p { color: var(--text-2); margin-top: .4rem; }
+.auth-card form { display: flex; flex-direction: column; gap: 1.05rem; }
+.auth-card .segmented { width: 100%; margin-bottom: 1.25rem; }
+.auth-card .segmented button { flex: 1; }
+.auth-foot { margin-top: 1.6rem; text-align: center; color: var(--text-2); font-size: .92rem; }
+.auth-step { animation: reveal .35s var(--ease) both; }
+.code-sent { display: flex; gap: .8rem; align-items: center; padding: .85rem 1rem; border-radius: var(--radius); background: var(--brand-soft); margin-bottom: .3rem; }
+.code-sent .icon { color: var(--brand-text); }
+.code-sent p { font-size: .88rem; color: var(--text-2); }
+.code-sent strong { color: var(--text); word-break: break-all; }
+.resend-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; font-size: .86rem; color: var(--text-3); flex-wrap: wrap; }
+
+.demo-box { display: flex; flex-direction: column; gap: .85rem; padding: 1rem 1.1rem; margin-bottom: 1.25rem; border-radius: var(--radius-lg); background: var(--brand-soft); border: 1px dashed var(--brand-ring); }
+.demo-copy strong { display: block; font-size: 1rem; }
+.demo-copy span { font-size: .86rem; color: var(--text-2); }
+.demo-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+@media (max-width: 420px) { .demo-actions { grid-template-columns: 1fr; } }
+
+.pw-meter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: .15rem; }
+.pw-meter i { height: 4px; border-radius: 4px; background: var(--surface-3); transition: background .25s; }
+.pw-meter[data-score="1"] i:nth-child(-n+1) { background: var(--critical); }
+.pw-meter[data-score="2"] i:nth-child(-n+2) { background: var(--warning); }
+.pw-meter[data-score="3"] i:nth-child(-n+3) { background: var(--good); }
+.pw-meter[data-score="4"] i { background: var(--good); }
+.pw-rules { display: flex; gap: .4rem 1rem; flex-wrap: wrap; font-size: .78rem; color: var(--text-3); }
+.pw-rules span { display: inline-flex; align-items: center; gap: .3rem; }
+.pw-rules span.ok { color: var(--good-text); }
+.pw-rules .icon { width: 13px; height: 13px; }
+
+@media (max-width: 920px) {
+  .auth-shell { grid-template-columns: minmax(0, 1fr); }
+  .auth-hero { min-height: 250px; padding: 1.4rem 1.4rem 1.5rem; }
+  .hero-copy h1 { font-size: 1.85rem; margin: .5rem 0; }
+  .hero-points, .hero-foot { display: none; }
+  .auth-panel { padding: 2rem 1.25rem 3rem; align-items: flex-start; }
+}

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <meta name="theme-color" content="#0b1120">
+    <title>QuizMUJ — Proctored quizzes for Manipal University Jaipur</title>
+    <meta name="description" content="QuizMUJ is a proctored quiz and assessment platform for Manipal University Jaipur: focus-mode exams, live proctoring, instant results and analytics.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/landing.css">
+    <script src="assets/js/app.js"></script>
+</head>
+<body>
+    <header class="land-nav">
+        <div class="container">
+            <a class="brand" href="index.html"><span class="brand-mark">Q</span><span>Quiz<b>MUJ</b></span></a>
+            <nav aria-label="Sections">
+                <a href="#features">Features</a>
+                <a href="#how">How it works</a>
+                <a href="#faculty">For faculty</a>
+            </nav>
+            <div class="actions" id="navActions">
+                <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle theme"><svg class="icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+                <a class="btn btn-ghost" href="login.html">Sign in</a>
+                <a class="btn btn-primary" href="register.html">Get started</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="reveal">
+                    <span class="pill-tag"><b>NEW</b> Live proctoring &amp; instant analytics</span>
+                    <h1>Assessments, <span class="grad">reimagined</span> for MUJ.</h1>
+                    <p class="lead">QuizMUJ runs secure, timed exams in a distraction-free focus mode, scores them instantly, and shows every student exactly where to improve — while faculty watch it all live.</p>
+                    <div class="ctas" id="heroCtas">
+                        <a class="btn btn-primary btn-lg" href="register.html">Create student account <svg class="icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+                        <a class="btn btn-secondary btn-lg" href="login.html">Sign in</a>
+                    </div>
+                    <div class="trust">
+                        <span><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>University email only</span>
+                        <span><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Server-timed exams</span>
+                        <span><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Autosave &amp; resume</span>
+                    </div>
+                </div>
+
+                <div class="preview reveal" style="--d:.15s" aria-hidden="true">
+                    <div class="card mock">
+                        <div class="mock-top">
+                            <div><div class="eyebrow">Data Structures · Midterm</div><div class="small muted">Question 4 of 20</div></div>
+                            <div class="mock-timer">24:18</div>
+                        </div>
+                        <div class="mock-q">What is the worst-case time complexity of searching in a balanced BST?</div>
+                        <div class="mock-opt"><i>A</i>O(n)</div>
+                        <div class="mock-opt sel"><i>B</i>O(log n)</div>
+                        <div class="mock-opt"><i>C</i>O(1)</div>
+                        <div class="mock-opt"><i>D</i>O(n log n)</div>
+                        <div class="mock-palette"><span class="a"></span><span class="a"></span><span class="r"></span><span class="c"></span><span></span><span></span><span></span><span></span></div>
+                    </div>
+                    <div class="card float-card fc-1"><div class="fc-icon" style="background:var(--good-soft);color:var(--good-text)"><svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><strong>Proctoring active</strong><span>0 violations</span></div></div>
+                    <div class="card float-card fc-2"><div class="fc-icon" style="background:var(--brand-soft);color:var(--brand-text)"><svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div><strong>+180 XP</strong><span>Scored 18/20 · Gold tier</span></div></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="features">
+            <div class="container">
+                <div class="section-head">
+                    <span class="eyebrow">Everything in one place</span>
+                    <h2>Built for how MUJ actually runs exams</h2>
+                    <p>From creating a quiz to analysing results, every step is fast, secure and real-time.</p>
+                </div>
+                <div class="features">
+                    <article class="card feature reveal"><div class="f-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></div><h3>Focus-mode exams</h3><p>Full-screen, distraction-free exams with a question palette, review flags, keyboard shortcuts and a server-authoritative timer.</p></article>
+                    <article class="card feature reveal" style="--d:.05s"><div class="f-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3>Live proctoring</h3><p>Tab switches, full-screen exits and disconnects are logged and streamed to faculty instantly, with automatic integrity flags.</p></article>
+                    <article class="card feature reveal" style="--d:.1s"><div class="f-icon"><svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><h3>Instant analytics</h3><p>Students see scores, topic mastery and mistakes. Faculty get score distributions, question difficulty and CSV exports.</p></article>
+                    <article class="card feature reveal"><div class="f-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div><h3>Cohort targeting</h3><p>Publish to a program, branch, batch, semester or a single section. Students only ever see quizzes meant for them.</p></article>
+                    <article class="card feature reveal" style="--d:.05s"><div class="f-icon"><svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div><h3>Question bank</h3><p>Import hundreds of questions from CSV, tag them by topic and reuse them across quizzes in a couple of clicks.</p></article>
+                    <article class="card feature reveal" style="--d:.1s"><div class="f-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></div><h3>XP &amp; leaderboards</h3><p>Every correct answer earns XP. Build streaks, unlock tiers and compete with your section, batch or the whole university.</p></article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="how">
+            <div class="container">
+                <div class="section-head">
+                    <span class="eyebrow">How it works</span>
+                    <h2>Up and running in minutes</h2>
+                </div>
+                <div class="steps">
+                    <div class="card reveal">
+                        <span class="badge badge-brand">For students</span>
+                        <ol>
+                            <li><div><strong>Sign up with your MUJ email</strong><span>Verify with a one-time code — no admin approval needed.</span></div></li>
+                            <li><div><strong>Set your academic profile</strong><span>Program, branch, batch, semester and section decide which quizzes you get.</span></div></li>
+                            <li><div><strong>Take quizzes &amp; grow</strong><span>Join live quizzes, get instant results and track your progress.</span></div></li>
+                        </ol>
+                    </div>
+                    <div class="card reveal" style="--d:.08s" id="faculty">
+                        <span class="badge badge-info">For faculty</span>
+                        <ol>
+                            <li><div><strong>Build or import a quiz</strong><span>Write questions, pull them from the bank, or embed a Google/MS Form.</span></div></li>
+                            <li><div><strong>Schedule &amp; target</strong><span>Pick the window, time limit and exact cohort — students are notified live.</span></div></li>
+                            <li><div><strong>Monitor &amp; analyse</strong><span>Watch the exam room live, force-end if needed, then review results and export CSVs.</span></div></li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container">
+                <div class="cta-band reveal">
+                    <h2>Ready for your next exam?</h2>
+                    <p>Create your account with your university email and your upcoming quizzes will be waiting.</p>
+                    <div class="row wrap">
+                        <a class="btn btn-primary btn-lg" href="register.html">Get started — it’s free</a>
+                        <a class="btn btn-lg" style="background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.25)" href="login.html">I already have an account</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-foot">
+        <div class="container">
+            <span>© <span data-year></span> QuizMUJ · Manipal University Jaipur</span>
+            <span><a href="login.html">Sign in</a> · <a href="register.html">Register</a></span>
+        </div>
+    </footer>
+
+    <script>
+        // Public demo deployments: offer one-click demo logins
+        QM.config().then((c) => {
+            if (!c.showcase || (QM.session.isValid() && QM.session.user)) return;
+            QM.setHTML(document.getElementById('heroCtas'), QM.html`
+                <a class="btn btn-primary btn-lg" href="login.html?demo=student">${QM.icon('play')}Try the student demo</a>
+                <a class="btn btn-secondary btn-lg" href="login.html?demo=faculty">${QM.icon('monitor')}Try the faculty demo</a>`);
+        }).catch(() => {});
+
+        // Signed-in visitors get a direct way back into the app
+        (function () {
+            if (!QM.session.isValid() || !QM.session.user) return;
+            const user = QM.session.user;
+            const home = QM.homeFor(user);
+            const first = (user.name || '').split(' ')[0];
+            QM.setHTML(document.getElementById('navActions'), QM.html`
+                <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle theme">${QM.icon('moon')}</button>
+                <a class="btn btn-primary" href="${home}">Open ${user.role === 'admin' ? 'console' : 'dashboard'}</a>`);
+            QM.setHTML(document.getElementById('heroCtas'), QM.html`
+                <a class="btn btn-primary btn-lg" href="${home}">Continue as ${first} ${QM.icon('arrow-right')}</a>`);
+            // The new toggle button is wired by app.js on DOMContentLoaded (binding here too would toggle twice)
+        })();
+    </script>
+</body>
+</html>

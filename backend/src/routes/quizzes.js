@@ -3,24 +3,36 @@ const {
   getQuizzes,
   getQuiz,
   createQuiz,
-  submitQuiz
+  updateQuiz,
+  deleteQuiz,
+  startQuiz,
+  saveProgress,
+  submitQuiz,
+  completeExternal,
+  getMyResult
 } = require('../controllers/quizzes');
-
 const { protect, authorize } = require('../middlewares/auth');
 
 const router = express.Router();
 
+router.use(protect);
+
 router
   .route('/')
-  .get(protect, getQuizzes)
-  .post(protect, authorize('admin'), createQuiz);
+  .get(getQuizzes)
+  .post(authorize('admin'), createQuiz);
 
 router
   .route('/:id')
-  .get(protect, getQuiz);
+  .get(getQuiz)
+  .put(authorize('admin'), updateQuiz)
+  .delete(authorize('admin'), deleteQuiz);
 
-router
-  .route('/:id/submit')
-  .post(protect, submitQuiz);
+// Student attempt lifecycle
+router.post('/:id/start', authorize('user'), startQuiz);
+router.put('/:id/progress', authorize('user'), saveProgress);
+router.post('/:id/submit', authorize('user'), submitQuiz);
+router.post('/:id/complete-external', authorize('user'), completeExternal);
+router.get('/:id/result', authorize('user'), getMyResult);
 
 module.exports = router;

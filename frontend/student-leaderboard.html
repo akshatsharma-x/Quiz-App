@@ -3,70 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <meta name="theme-color" content="#0b1120">
     <title>Leaderboard | QuizMUJ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/app.css">
     <link rel="stylesheet" href="student-leaderboard.css">
+    <script src="assets/js/app.js"></script>
 </head>
-<body class="dark-mode">
-
-    <nav class="navbar glass">
-        <div class="navbar-brand">QuizMUJ <span class="badge">GLOBAL</span></div>
-        <div class="nav-actions">
-            <a href="student-dashboard.html" class="nav-link">Dashboard</a>
-            
-            <div class="profile-dropdown">
-                <div class="avatar" id="profileAvatar">A</div>
-                <div class="dropdown-menu glass" id="profileMenu">
-                    <a href="#" id="myProfileBtn">My Profile</a>
-                    <a href="#" id="settingsBtn">Settings</a>
-                    <a href="#" id="toggleDarkMode">Toggle Theme</a>
-                    <a href="#" id="logoutBtn" style="color: var(--danger-color)">Logout</a>
-                </div>
+<body>
+    <header id="appNav"></header>
+    <main class="container page">
+        <div class="page-head reveal">
+            <div>
+                <span class="eyebrow"><span class="badge badge-critical badge-live" style="height:20px">Live</span> Hall of fame</span>
+                <h1>Leaderboard</h1>
+                <p>Every point you score earns 10 XP. Climb the ranks in your section, your batch, or the whole university.</p>
             </div>
-        </div>
-    </nav>
-
-    <main class="leaderboard-container">
-        <!-- Header -->
-        <header class="page-header fade-in">
-            <h1>Hall of Fame 🏆</h1>
-            <p>The top 5 brightest minds across the university. Can you dethrone them?</p>
-        </header>
-
-        <!-- Current User Rank Context -->
-        <div class="user-rank-banner glass slide-up" style="--delay: 0.1s">
-            <div class="rank-info">
-                <span class="user-badge">You</span>
-                <h2>Akshat Sharma</h2>
-            </div>
-            <div class="rank-stats">
-                <div class="stat">
-                    <span class="label">Rank</span>
-                    <span class="value">#42</span>
-                </div>
-                <div class="stat">
-                    <span class="label">Total XP</span>
-                    <span class="value">12,450 ⚡</span>
-                </div>
-                <div class="stat">
-                    <span class="label">To Next Tier</span>
-                    <span class="value">350 XP</span>
-                </div>
+            <div class="segmented" role="group" aria-label="Leaderboard scope" id="scope">
+                <button type="button" data-scope="global" aria-pressed="true">University</button>
+                <button type="button" data-scope="batch" aria-pressed="false">My batch</button>
+                <button type="button" data-scope="section" aria-pressed="false">My section</button>
             </div>
         </div>
 
-        <!-- Global Leaderboard Panel -->
-        <section class="leaderboard-panel glass slide-up" style="--delay: 0.2s">
-            <div class="panel-header">
-                <h2>Top 5 Overall Leaderboard</h2>
-                <span class="pulse-live">🔴 LIVE</span>
-            </div>
-            
-            <ul class="leaderboard-list" id="leaderboardList">
-                <!-- Populated by JS -->
-            </ul>
-        </section>
+        <section class="card me-card reveal" id="meCard" style="--d:.05s"><div class="skeleton sk-block"></div></section>
+
+        <div class="lb-grid mt-3">
+            <section class="card reveal" style="--d:.1s">
+                <div class="podium" id="podium"></div>
+                <ol class="lb-list" id="lbList"></ol>
+            </section>
+            <aside class="card card-pad reveal tiers" style="--d:.15s">
+                <h3>Tiers</h3>
+                <p class="small muted mb-2">Your tier is based on the XP you’ve earned.</p>
+                <ul class="tier-list" id="tierList"></ul>
+            </aside>
+        </div>
     </main>
-
+    <script src="assets/js/shell.js"></script>
     <script src="student-leaderboard.js"></script>
 </body>
 </html>

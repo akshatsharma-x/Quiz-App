@@ -1,11 +1,14 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "QuizMUJ – proctored quiz & assessment platform API",
+  "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "seed": "node seed-admin.js",
+    "test:email": "node test-email.js",
+    "seed:demo": "node seed-demo.js"
   },
   "keywords": [],
   "author": "",
@@ -21,10 +24,13 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.0",
     "multer": "^2.1.1",
-    "nodemailer": "^8.0.2",
+    "nodemailer": "^10.6.1",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
+  },
+  "engines": {
+    "node": ">=20.19.0"
   }
 }

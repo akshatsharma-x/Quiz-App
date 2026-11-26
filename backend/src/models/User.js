@@ -5,16 +5,20 @@ const jwt = require('jsonwebtoken');
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please add a name']
+    required: [true, 'Please add a name'],
+    trim: true,
+    maxlength: [80, 'Name cannot be more than 80 characters']
   },
   email: {
     type: String,
     required: [true, 'Please add an email'],
     unique: true,
-    match: [
-      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-      'Please add a valid email'
-    ]
+    lowercase: true,
+    trim: true,
+    maxlength: [254, 'Email is too long'],
+    // Plain address characters only (no quotes/comments/angle brackets that mail parsers
+    // interpret) and linear-time: domain labels exclude the dot that separates them
+    match: [/^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/, 'Please add a valid email']
   },
   role: {
     type: String,
@@ -27,6 +31,11 @@ const UserSchema = new mongoose.Schema({
     minlength: 6,
     select: false
   },
+  passwordChangedAt: {
+    type: Date,
+    select: false
+  },
+  // Legacy denormalised counter (points). Leaderboards are computed from Results.
   totalScore: {
     type: Number,
     default: 0
@@ -35,55 +44,36 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  otp: {
-    type: String,
-    select: false
-  },
-  otpExpire: {
-    type: Date,
-    select: false
-  },
+
+  // One-time passwords are stored hashed and are bound to a purpose.
+  otp: { type: String, select: false },
+  otpExpire: { type: Date, select: false },
+  otpPurpose: { type: String, enum: ['verify', 'login', 'reset'], select: false },
+  otpAttempts: { type: Number, default: 0, select: false },
+  otpLastSentAt: { type: Date, select: false },
+
   isVerified: {
     type: Boolean,
     default: false
   },
-  
-  // LMS FEATURE: Cohort Management & Academic Identity
-  program: {
-    type: String,
-    trim: true
+  isBanned: {
+    type: Boolean,
+    default: false
   },
-  branch: {
-    type: String,
-    trim: true
+  lastSeenAnnouncementsAt: {
+    type: Date
   },
-  batchYear: {
-    type: String,
-    trim: true
-  },
-  semester: {
-    type: String,
-    trim: true
-  },
-  section: {
-    type: String,
-    trim: true,
-    index: true // Indexed for rapid querying
+  lastLoginAt: {
+    type: Date
   },
 
-  // LMS FEATURE: Performance Optimization (Denormalization)
-  completedQuizzes: [{
-    quizId: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Quiz'
-    },
-    score: Number,
-    completedAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  
+  // LMS FEATURE: Cohort Management & Academic Identity
+  program: { type: String, trim: true },
+  branch: { type: String, trim: true },
+  batchYear: { type: String, trim: true },
+  semester: { type: String, trim: true },
+  section: { type: String, trim: true, index: true },
+
   createdAt: {
     type: Date,
     default: Date.now
@@ -91,26 +81,62 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Encrypt password using bcrypt
-UserSchema.pre('save', async function() {
-  // Only hash the password if it has been modified (or is new)
-  if (!this.isModified('password')) {
-    return;
-  }
+UserSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  // Tokens issued before this moment become invalid (see middlewares/auth.js)
+  if (!this.isNew) this.passwordChangedAt = new Date(Date.now() - 1000);
 });
 
-// Sign JWT and return
-UserSchema.methods.getSignedJwtToken = function() {
+UserSchema.methods.getSignedJwtToken = function () {
   return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE
+    expiresIn: process.env.JWT_EXPIRE || '7d'
   });
 };
 
-// Match user entered password to hashed password in database
-UserSchema.methods.matchPassword = async function(enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+UserSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password || typeof enteredPassword !== 'string') return false;
+  return bcrypt.compare(enteredPassword, this.password);
 };
+
+UserSchema.methods.hasCompleteProfile = function () {
+  return Boolean(this.program && this.branch && this.batchYear && this.semester && this.section);
+};
+
+// Safe public representation – never leaks credentials or OTP state
+UserSchema.methods.toPublic = function () {
+  return {
+    _id: this._id,
+    name: this.name,
+    email: this.email,
+    role: this.role,
+    isVerified: this.isVerified,
+    isBanned: this.isBanned,
+    program: this.program || null,
+    branch: this.branch || null,
+    batchYear: this.batchYear || null,
+    semester: this.semester || null,
+    section: this.section || null,
+    profileComplete: this.role === 'admin' ? true : this.hasCompleteProfile(),
+    createdAt: this.createdAt,
+    lastLoginAt: this.lastLoginAt || null
+  };
+};
+
+UserSchema.set('toJSON', {
+  transform: (_doc, ret) => {
+    delete ret.password;
+    delete ret.otp;
+    delete ret.otpExpire;
+    delete ret.otpPurpose;
+    delete ret.otpAttempts;
+    delete ret.otpLastSentAt;
+    delete ret.passwordChangedAt;
+    delete ret.__v;
+    return ret;
+  }
+});
 
 module.exports = mongoose.model('User', UserSchema);

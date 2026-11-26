@@ -1,197 +1,166 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const errorHandler = require('./middlewares/error');
-
-// Load env vars
 const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
+const http = require('http');
+const dotenv = require('dotenv');
+
+// Load env vars before anything reads them
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
-// Connect to database
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
 const connectDB = require('./config/db');
-connectDB();
+const errorHandler = require('./middlewares/error');
+const realtime = require('./realtime');
+const ensureAdmin = require('./utils/seedAdmin');
+const runMigrations = require('./utils/migrations');
+const { seedDemoData } = require('./utils/demoData');
+const Result = require('./models/Result');
+const { startSweeper } = require('./services/attempts');
+
+// ---- Configuration sanity checks --------------------------------------------------------
+if (!process.env.MONGO_URI) {
+  console.error('MONGO_URI is not set. Copy backend/.env.example to backend/.env and configure it.');
+  process.exit(1);
+}
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('JWT_SECRET must be set in production.');
+    process.exit(1);
+  }
+  process.env.JWT_SECRET = crypto.randomBytes(32).toString('hex');
+  console.warn('[CONFIG] JWT_SECRET is not set – using a random secret (sessions reset on restart).');
+}
+
+const corsOrigin = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+  : '*';
 
 const app = express();
+app.disable('x-powered-by');
+// Only trust X-Forwarded-For from known proxies. Env vars are strings, so map them to the
+// types Express expects: "1"/"2" = number of proxy hops (PaaS load balancers), "true"/"false",
+// or a list such as "loopback, uniquelocal" (docker-compose behind nginx).
+const parseTrustProxy = (raw) => {
+  if (!raw) return 'loopback';
+  const v = raw.trim();
+  if (/^\d+$/.test(v)) return Number(v);
+  if (v === 'true') return true;
+  if (v === 'false') return false;
+  return v;
+};
+app.set('trust proxy', parseTrustProxy(process.env.TRUST_PROXY));
 
-// Body parser
-app.use(express.json());
+// Baseline security headers
+app.use((req, res, next) => {
+  res.set({
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'X-Frame-Options': 'SAMEORIGIN'
+  });
+  next();
+});
 
-// Route files
-const authRouter = require('./routes/auth');
-const quizzesRouter = require('./routes/quizzes');
-const adminRouter = require('./routes/admin');
-const studentRouter = require('./routes/student');
+app.use(cors({ origin: corsOrigin }));
+app.use(express.json({ limit: '1mb' }));
+// Express 5 leaves req.body undefined when there is no (JSON) body – normalise it
+app.use((req, res, next) => {
+  if (req.body === undefined || req.body === null || typeof req.body !== 'object') req.body = {};
+  next();
+});
 
-// Enable CORS
-app.use(cors());
+// ---- API ----------------------------------------------------------------------------------
+app.use('/api/v1/auth', require('./routes/auth'));
+app.use('/api/v1/quizzes', require('./routes/quizzes'));
+app.use('/api/v1/admin', require('./routes/admin'));
+app.use('/api/v1/student', require('./routes/student'));
+app.use('/api/v1/meta', require('./routes/meta'));
 
-// Mount routers
-app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/quizzes', quizzesRouter);
-app.use('/api/v1/admin', adminRouter);
-app.use('/api/v1/student', studentRouter);
-
-// Basic health check route
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'QuizMUJ API is running',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     timestamp: new Date().toISOString()
   });
 });
 
+app.use('/api', (req, res) => {
+  res.status(404).json({ success: false, error: `Route ${req.method} ${req.originalUrl} not found` });
+});
+
+// ---- Frontend (served directly when running without nginx) -------------------------------
+const FRONTEND_DIR = process.env.FRONTEND_DIR || path.join(__dirname, '../../frontend');
+if (fs.existsSync(path.join(FRONTEND_DIR, 'index.html'))) {
+  app.use(express.static(FRONTEND_DIR, {
+    extensions: ['html'],
+    setHeaders: (res, filePath) => {
+      // No build step / hashed filenames → always revalidate code, cache images
+      if (/\.(html|js|css)$/i.test(filePath)) res.setHeader('Cache-Control', 'no-cache');
+      else res.setHeader('Cache-Control', 'public, max-age=604800');
+    }
+  }));
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' || !req.accepts('html')) return next();
+    res.status(404).sendFile(path.join(FRONTEND_DIR, '404.html'), (err) => err && next());
+  });
+}
+
 app.use(errorHandler);
 
+// ---- Boot -----------------------------------------------------------------------------------
 const PORT = process.env.PORT || 5001;
+const server = http.createServer(app);
+realtime.init(server, corsOrigin);
 
-const server = app.listen(
-  PORT,
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
-);
+const start = async () => {
+  await connectDB();
+  await runMigrations().catch((err) => console.error('[MIGRATE] Data migration failed:', err.message));
+  await ensureAdmin().catch((err) => console.error('[SEED] Could not ensure admin account:', err.message));
 
-// Setup Socket.io
-const socketio = require('socket.io');
-const io = socketio(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
+  // Public demo: rebuild the demo dataset on every boot (free hosts restart after idling)
+  // and every 6 hours, so exam windows stay current and the demo always works.
+  if (process.env.SHOWCASE_MODE === 'true') {
+    const refresh = async (reason) => {
+      try {
+        if (reason !== 'boot' && await Result.exists({ status: 'in_progress' })) return; // never mid-exam
+        const r = await seedDemoData({ reset: true });
+        console.log(`[SHOWCASE] Demo data refreshed (${reason}): ${r.quizzes} quizzes, ${r.attempts} attempts`);
+        realtime.emitToAllStudents('quiz:updated', {});
+        realtime.emitToAdmins('quizzes:changed', {});
+      } catch (err) {
+        console.error('[SHOWCASE] Could not refresh demo data:', err.message);
+      }
+    };
+    await refresh('boot');
+    setInterval(() => refresh('scheduled'), 6 * 3600 * 1000).unref();
   }
+  startSweeper();
+  server.listen(PORT, () => {
+    console.log(`QuizMUJ server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    if (fs.existsSync(path.join(FRONTEND_DIR, 'index.html'))) {
+      console.log(`Open http://localhost:${PORT} in your browser`);
+    }
+  });
+};
+
+if (require.main === module) {
+  start();
+}
+
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled promise rejection:', err);
 });
 
-// Expose io instance to Express routes
-app.set('io', io);
-
-// Master Tracking Map in Server Memory for the Live Exam Room
-const liveTestTakers = new Map(); // socket.id -> { userId, name, email, quizId, startTime, warnings }
-
-let activeUsers = 0;
-
-io.on('connection', (socket) => {
-  activeUsers++;
-  io.emit('activeUsers', activeUsers);
-  console.log(`Socket connected: ${socket.id}. Total active: ${activeUsers}`);
-
-  // 1. Admins entering the dashboard join a special broadcast room
-  socket.on('joinAdminRoom', () => {
-    socket.join('admin_room');
-    // Instantly hydrate the admin's table with current test-takers
-    socket.emit('liveTakersUpdate', Array.from(liveTestTakers.values()));
+const shutdown = (signal) => {
+  console.log(`${signal} received – shutting down gracefully`);
+  server.close(() => {
+    mongoose.connection.close(false).finally(() => process.exit(0));
   });
+  setTimeout(() => process.exit(0), 5000).unref();
+};
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
-  // 1B. Students connecting to Dashboard: Grouping them by Demographic Cohorts
-  socket.on('joinCohortRoom', (studentData) => {
-    // Generate the specific combination string. Replace spaces with underscores for robust room names.
-    const { program, branch, batchYear, semester, section } = studentData;
-    
-    // Fallback handling to ensure rooms strings are uniform
-    if (!program || !branch) return;
-
-    // e.g., 'B.Tech-CSE-2024-2028-Semester 4-A'
-    const roomName = `${program}-${branch}-${batchYear}-${semester}-${section}`.replace(/\s+/g, '_');
-    
-    socket.join(roomName);
-    socket.join('All'); // Universal broadcast fallback group
-    console.log(`[TARGETING] Student joined WebSocket Room: ${roomName}`);
-  });
-
-
-  // 2. Students starting an exam
-  socket.on('startLiveExam', (studentData) => {
-    socket.join(`quiz_${studentData.quizId}`);
-    
-    // Add student to the tracking map with a warning counter set to 0
-    liveTestTakers.set(socket.id, {
-      ...studentData,
-      startTime: new Date(),
-      warnings: 0
-    });
-    
-    // Broadcast the updated array to all Admins watching the table
-    io.to('admin_room').emit('liveTakersUpdate', Array.from(liveTestTakers.values()));
-    console.log(`[LMS] Student ${studentData.name} started quiz ${studentData.quizId}`);
-  });
-
-  // 3. Proctoring & Anti-Cheat: Tab Switching Detection
-  socket.on('tabSwitchDetected', () => {
-    const student = liveTestTakers.get(socket.id);
-    if(student) {
-      student.warnings += 1; // Increment cheat flag
-      console.log(`[ANTI-CHEAT] ${student.name} switched tabs! Warnings: ${student.warnings}`);
-      
-      // Ping the Admin with a red alert
-      io.to('admin_room').emit('cheatAlert', {
-        name: student.name,
-        warnings: student.warnings,
-        message: 'Student switched tabs or exited full-screen!'
-      });
-      // Refresh the main table to show the new warning count
-      io.to('admin_room').emit('liveTakersUpdate', Array.from(liveTestTakers.values()));
-    }
-  });
-
-  // Native Gateway Anti-Cheat Module (Phase 3 Integration)
-  socket.on('proctor-violation', (violationData) => {
-    console.warn(`[SEVERE FORENSICS] ${violationData.studentName} cheated on Quiz ${violationData.quizId}`);
-    
-    // Sync to the existing connection map to render the Admin UI Table Tracker
-    const student = liveTestTakers.get(socket.id);
-    if (student) {
-        student.warnings = violationData.violationCount; // Strict Sync
-        io.to('admin_room').emit('liveTakersUpdate', Array.from(liveTestTakers.values()));
-    }
-
-    // Relay immediately to the Admin Command Center (Sidebar Panel)
-    io.to('admin_room').emit('student-violation-alert', violationData);
-  });
-
-  // Track Exact Duration of Focus Loss (Forensics)
-  socket.on('focusRestored', ({ durationMs }) => {
-    const student = liveTestTakers.get(socket.id);
-    if(student) {
-      // Calculate off-screen time in seconds
-      const secondsOffScreen = (durationMs / 1000).toFixed(1);
-      console.log(`[FORENSICS] ${student.name} was off-screen for ${secondsOffScreen}s`);
-      
-      io.to('admin_room').emit('cheatAlert', {
-        name: student.name,
-        warnings: student.warnings,
-        message: `Student was off-screen for exactly ${secondsOffScreen} seconds!`
-      });
-    }
-  });
-
-  // 5. MODULE 7: Global Announcements
-  socket.on('adminAnnouncement', (message) => {
-    // Requires admin validation in a real app, assuming admin for learning
-    console.log(`[BROADCAST] Admin Announcement: ${message}`);
-    // Broadcast to ALL connected students securely
-    socket.broadcast.emit('announcement', message);
-  });
-
-  // 6. MODULE 7: Force End Exam
-  socket.on('adminForceEndExam', (quizId) => {
-    console.log(`[FORCE SUBMIT] Admin force-ending Quiz: ${quizId}`);
-    // Broadcast ONLY to students currently in this specific quiz room!
-    io.to(`quiz_${quizId}`).emit('forceSubmitTimer');
-  });
-
-  // 7. Cleanup on disconnect (Student submits or closes browser)
-  socket.on('disconnect', () => {
-    activeUsers--;
-    io.emit('activeUsers', activeUsers);
-    
-    if(liveTestTakers.has(socket.id)) {
-      console.log(`[LMS] Student ${liveTestTakers.get(socket.id).name} left the exam.`);
-      liveTestTakers.delete(socket.id);
-      io.to('admin_room').emit('liveTakersUpdate', Array.from(liveTestTakers.values()));
-    }
-    console.log(`Socket disconnected: ${socket.id}. Total active: ${activeUsers}`);
-  });
-});
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-  console.log(`Error: ${err.message}`);
-  // Close server & exit process
-  server.close(() => process.exit(1));
-});
+module.exports = { app, server, start };

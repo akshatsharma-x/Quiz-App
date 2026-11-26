@@ -1,30 +1,18 @@
-require('dotenv').config();
-const nodemailer = require('nodemailer');
+// Sends a test email to verify SMTP settings:  npm run test:email -- you@example.com
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+const sendEmail = require('./src/utils/sendEmail');
 
-async function testMail() {
-  console.log("Testing with User:", process.env.SMTP_EMAIL);
-  // Log password length to verify it's reading the updated .env without printing the actual password
-  console.log("Password length:", process.env.SMTP_PASSWORD ? process.env.SMTP_PASSWORD.length : 0);
-  
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.SMTP_EMAIL,
-      pass: process.env.SMTP_PASSWORD
-    }
-  });
-
-  try {
-    const info = await transporter.sendMail({
-      from: process.env.FROM_EMAIL,
-      to: 'akshat@muj.manipal.edu', // Sending a test to a known format
-      subject: 'Nodemailer Test',
-      text: 'This is a test from the manual script.'
-    });
-    console.log("SUCCESS:", info.messageId);
-  } catch (err) {
-    console.log("ERROR:", err.message);
-  }
+const to = process.argv[2] || process.env.SMTP_EMAIL;
+if (!to) {
+  console.error('Usage: npm run test:email -- recipient@example.com');
+  process.exit(1);
 }
 
-testMail();
+process.env.NODE_ENV = 'production'; // surface delivery errors instead of the dev fallback
+sendEmail({ email: to, subject: 'QuizMUJ SMTP test', message: 'SMTP is configured correctly.' })
+  .then(() => console.log(`SUCCESS: test email sent to ${to}`))
+  .catch((err) => {
+    console.error('ERROR:', err.message);
+    process.exit(1);
+  });

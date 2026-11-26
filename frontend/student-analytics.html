@@ -3,83 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Performance | QuizMUJ</title>
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <meta name="theme-color" content="#0b1120">
+    <title>Analytics | QuizMUJ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/app.css">
     <link rel="stylesheet" href="student-analytics.css">
+    <script src="assets/js/app.js"></script>
 </head>
-<body class="dark-mode">
-
-    <nav class="navbar glass">
-        <div class="navbar-brand">QuizMUJ <span class="badge">ANALYTICS</span></div>
-        <div class="nav-actions">
-            <a href="student-dashboard.html" class="nav-link">Dashboard</a>
-            <button class="nav-btn" id="toggleDarkMode">Toggle Theme</button>
+<body>
+    <header id="appNav"></header>
+    <main class="container page">
+        <div class="page-head reveal">
+            <div>
+                <span class="eyebrow">Performance</span>
+                <h1>Your analytics</h1>
+                <p>Track your scores over time, see which topics you’ve mastered, and review exactly where you lost marks.</p>
+            </div>
         </div>
-    </nav>
 
-    <main class="analytics-container">
-        
-        <!-- Header -->
-        <header class="page-header fade-in">
-            <h1>Deep Analytics & Growth</h1>
-            <p>Analyze your strengths, track historical performance, and review mistakes.</p>
-        </header>
-
-        <!-- Top Section: Chart & Stats -->
-        <section class="top-split slide-up" style="--delay: 0.1s">
-            
-            <!-- Canvas Radar Chart Section -->
-            <div class="chart-panel glass">
-                <h2>Proficiency Radar</h2>
-                <div class="canvas-wrapper">
-                    <!-- Pure HTML5 Canvas. NO Chart.js -->
-                    <canvas id="radarChart" width="400" height="400"></canvas>
-                </div>
-            </div>
-
-            <!-- Actionable Feedback (Latest Exam) -->
-            <div class="feedback-panel glass slide-up" style="--delay: 0.2s">
-                <h2>Actionable Feedback: Advanced Data Structures</h2>
-                <p class="subtitle">Review your mistakes to improve.</p>
-                <div class="feedback-list" id="feedbackList">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-
+        <section class="stats" id="kpis" aria-label="Summary">
+            <div class="card stat"><div class="skeleton sk-line" style="width:50%"></div><div class="skeleton sk-line" style="height:26px;width:60%"></div></div>
+            <div class="card stat"><div class="skeleton sk-line" style="width:50%"></div><div class="skeleton sk-line" style="height:26px;width:60%"></div></div>
+            <div class="card stat"><div class="skeleton sk-line" style="width:50%"></div><div class="skeleton sk-line" style="height:26px;width:60%"></div></div>
+            <div class="card stat"><div class="skeleton sk-line" style="width:50%"></div><div class="skeleton sk-line" style="height:26px;width:60%"></div></div>
         </section>
 
-        <!-- Bottom Section: Historical Data Table -->
-        <section class="history-section glass slide-up" style="--delay: 0.3s">
-            <div class="table-header">
-                <h2>Historical Attempts</h2>
-                <input type="text" id="searchInput" class="search-bar glass" placeholder="Search exams (e.g. Math, Midterm)...">
+        <div class="an-grid mt-3">
+            <section class="card card-pad reveal" style="--d:.05s"><div id="trendChart"><div class="skeleton sk-block" style="height:240px"></div></div></section>
+            <section class="card card-pad reveal" style="--d:.1s">
+                <div class="viz-head"><div><div class="viz-title" id="masteryTitle">Topic mastery</div><div class="viz-sub" id="masterySub">Accuracy per topic tag across revealed quizzes</div></div></div>
+                <div id="mastery"><div class="skeleton sk-line"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line"></div></div>
+            </section>
+        </div>
+
+        <section class="card mt-3 reveal" style="--d:.15s">
+            <div class="card-head"><h2><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Where you lost marks</h2><span id="feedbackLink"></span></div>
+            <div class="card-body" id="feedback"><div class="skeleton sk-line"></div><div class="skeleton sk-line"></div></div>
+        </section>
+
+        <section class="card mt-3 reveal" style="--d:.2s">
+            <div class="card-head">
+                <h2><svg class="icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Attempt history</h2>
+                <div class="input-wrap" style="max-width:280px;width:100%">
+                    <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input class="input" type="search" id="search" placeholder="Search quizzes" aria-label="Search quizzes">
+                </div>
             </div>
-            
-            <div class="table-responsive">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>Exam Name</th>
-                            <th>Date</th>
-                            <th>Score</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTableBody">
-                        <!-- Populated by JS -->
-                    </tbody>
+            <div class="table-wrap">
+                <table class="table">
+                    <thead><tr><th>Quiz</th><th>Submitted</th><th class="num">Score</th><th>Result</th><th class="num">Time</th><th class="actions"><span class="sr-only">Actions</span></th></tr></thead>
+                    <tbody id="history"><tr><td colspan="6"><div class="skeleton sk-line"></div></td></tr></tbody>
                 </table>
             </div>
-
-            <div class="pagination">
-                <button id="prevPage" class="page-btn">Previous</button>
-                <span id="pageInfo">Page 1 of 3</span>
-                <button id="nextPage" class="page-btn">Next</button>
+            <div class="card-foot row-between">
+                <span class="small subtle" id="pageInfo"></span>
+                <div class="row" style="gap:.4rem">
+                    <button class="btn btn-secondary btn-sm" id="prevPage" type="button">Previous</button>
+                    <button class="btn btn-secondary btn-sm" id="nextPage" type="button">Next</button>
+                </div>
             </div>
         </section>
-
     </main>
-
+    <script src="assets/js/charts.js"></script>
+    <script src="assets/js/shell.js"></script>
     <script src="student-analytics.js"></script>
 </body>
 </html>

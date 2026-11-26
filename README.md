@@ -128,7 +128,7 @@ npm start                   # or: npm run dev  (auto-reload)
 Open **http://localhost:5001**. The API also serves the frontend, so there's nothing else to run.
 
 - An admin account is created automatically on first start: `admin@quizmuj.com` / `admin123`. Override it with `ADMIN_EMAIL`, `ADMIN_PASSWORD` and `ADMIN_NAME`, and **change the password** under *Console → Settings*.
-- Want something to click through? `npm run seed:demo` adds sample students, quizzes, attempts, a question bank and announcements without sending any email. Demo students sign in with `demo.aarav.sharma@muj.manipal.edu` / `Demo1234`, and every `demo.*` account uses the same password. To recreate the data, run `npm run seed:demo -- --reset`.
+- Want something to click through? `npm run seed:demo` adds sample students, quizzes, attempts, a question bank and announcements without sending any email. Demo students sign in with `demo.akshat.sharma@muj.manipal.edu` / `Demo1234`, and every `demo.*` account uses the same password. To recreate the data, run `npm run seed:demo -- --reset`.
 - If no SMTP credentials are set in development, sign-in and verification codes are **printed in the server console**. To check real email delivery, run `npm run test:email -- you@example.com`.
 - Using VS Code Live Server (ports 5500–5502) for the frontend also works. The frontend then talks to the API on `:5001` automatically.
 

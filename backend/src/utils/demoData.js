@@ -22,7 +22,7 @@ const rand = () => {
 const between = (a, b) => a + Math.floor(rand() * (b - a + 1));
 
 const STUDENTS = [
-  ['Aarav Sharma', 'B.Tech', 'CSE', '2024-2028', 'Semester 4', 'A', 0.78],
+  ['Akshat Sharma', 'B.Tech', 'CSE', '2024-2028', 'Semester 4', 'A', 0.78],
   ['Priya Mehta', 'B.Tech', 'CSE', '2024-2028', 'Semester 4', 'A', 0.92],
   ['Rohan Gupta', 'B.Tech', 'CSE', '2024-2028', 'Semester 4', 'A', 0.64],
   ['Ananya Desai', 'B.Tech', 'CSE', '2024-2028', 'Semester 4', 'A', 0.86],
@@ -141,7 +141,12 @@ const seedDemoData = async ({ reset = false } = {}) => {
   const at = (offsetMs) => new Date(now + offsetMs);
 
   if (reset) {
-    await Promise.all([Quiz.deleteMany({}), Result.deleteMany({}), Announcement.deleteMany({}), QuestionBank.deleteMany({})]);
+    const roster = STUDENTS.map(([name]) => emailOf(name));
+    await Promise.all([
+      Quiz.deleteMany({}), Result.deleteMany({}), Announcement.deleteMany({}), QuestionBank.deleteMany({}),
+      // Demo students no longer in the roster (e.g. renamed). Real accounts can't use demo.* emails.
+      User.deleteMany({ role: 'user', email: { $regex: /^demo\./i, $nin: roster } })
+    ]);
   }
 
   const faculty = await upsertDemoUser({ ...DEMO_FACULTY, role: 'admin' });

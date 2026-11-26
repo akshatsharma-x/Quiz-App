@@ -1,0 +1,45 @@
+# Render Blueprint – https://render.com/docs/blueprint-spec
+# New → Blueprint → pick this repo. Values marked `sync: false` are asked for once.
+#
+# This configuration is a FREE public showcase:
+#   • plan: free  – sleeps after 15 idle minutes, ~1 minute to wake up
+#   • SHOWCASE_MODE – one-click demo logins; demo data is rebuilt on every wake-up
+#   • email via Brevo's HTTPS API (free Render instances block SMTP ports 465/587)
+# For real exams: set plan to `starter` and SHOWCASE_MODE to "false" (see DEPLOYMENT.md).
+services:
+  - type: web
+    name: quizmuj
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    region: singapore          # closest Render region to India
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: TRUST_PROXY
+        value: "1"             # one proxy hop (Render's load balancer) → real client IPs
+      - key: APP_TIMEZONE
+        value: Asia/Kolkata
+      - key: SHOWCASE_MODE
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: MONGO_URI          # mongodb+srv://USER:PASS@cluster.xxxxx.mongodb.net/quizmuj
+        sync: false
+      - key: ADMIN_EMAIL        # your private admin login (the demo faculty account is separate)
+        sync: false
+      - key: ADMIN_PASSWORD     # 8+ characters with letters and numbers
+        sync: false
+      - key: BREVO_API_KEY      # Brevo → SMTP & API → API keys (optional: only needed for real sign-ups)
+        sync: false
+      - key: FROM_EMAIL         # a sender address verified in Brevo
+        sync: false
+      - key: FROM_NAME
+        value: QuizMUJ

@@ -1,20 +1,21 @@
-FROM node:18-alpine
+# Mongoose 9 / MongoDB driver 7 require Node.js >= 20.19
+FROM node:22-alpine
 
-# Create app directory
+ENV NODE_ENV=production
 WORKDIR /usr/src/app
 
-# Install dependencies exclusively
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# Install production dependencies only (reproducible, from the lockfile)
 COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
-# Clean exact install (excellent for CI/CD and Docker environments)
-RUN npm ci
-
-# Bundle app source
 COPY . .
 
-# Expose the defined port
+# Run as the unprivileged "node" user that ships with the image
+USER node
+
 EXPOSE 3000
 
-# Start command (using node instead of nodemon for production stability)
-CMD [ "node", "src/server.js" ]
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=5 \
+  CMD wget -qO- http://127.0.0.1:${PORT:-3000}/api/health >/dev/null 2>&1 || exit 1
+
+CMD ["node", "src/server.js"]

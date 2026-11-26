@@ -31,13 +31,7 @@ Use this to put QuizMUJ online for a portfolio, demo or viva. It uses **Render's
 
 ### Steps
 
-1. **Prepare the repo**
-   - Rotate the leaked Gmail App Password: revoke the old one.
-   - Stop tracking secrets and packages, commit, and push to GitHub:
-     ```bash
-     git rm -r --cached backend/.env backend/node_modules
-     git commit -m "Stop tracking secrets and node_modules"
-     ```
+1. **Prepare the repo:** push it to GitHub. `backend/.env` and `node_modules` are gitignored, so your secrets and packages stay on your machine. If a password or API key was ever committed, revoke it and create a new one: git history keeps old versions of files.
 2. **Database: [MongoDB Atlas](https://www.mongodb.com/atlas)** (free M0, see [section 2](#2-create-the-database-mongodb-atlas-free) for details)
    - Create an **M0** cluster on AWS in **Mumbai**.
    - Add a database user, and allow access from `0.0.0.0/0`.
@@ -66,17 +60,11 @@ Use this to put QuizMUJ online for a portfolio, demo or viva. It uses **Render's
 
 Everything below is for running real exams: an always-on paid instance, persistent data, and no showcase mode.
 
-## 1. Before you deploy (do this first)
+## 1. Before you deploy
 
-1. **Rotate the leaked secrets.** `backend/.env` was committed, so its Gmail App Password and `JWT_SECRET` are in your git history.
-   - Revoke that App Password in your Google Account.
-   - Never reuse the old JWT secret.
-2. **Stop tracking secrets and installed packages:**
-   ```bash
-   git rm -r --cached backend/.env backend/node_modules
-   git commit -m "Stop tracking secrets and node_modules"
-   ```
-3. Push the repository to GitHub. A private repository is recommended.
+1. **Keep secrets out of git.** `backend/.env` is gitignored. Set production values in your host's environment settings instead.
+2. **Replace any secret that was ever committed.** Git history keeps old versions of files, so revoke such passwords and API keys, and never reuse an old `JWT_SECRET`.
+3. Push the repository to GitHub. A private repository is recommended for real exams.
 
 ## 2. Create the database (MongoDB Atlas, free)
 
